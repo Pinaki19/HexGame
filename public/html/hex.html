@@ -1575,7 +1575,7 @@
             let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             console.log(wsProtocol);
             // Construct the WebSocket URL using the obtained hostname, port, and protocol
-            let socket = new WebSocket(`${wsProtocol}//${hostname}:${port}/ws/${game_id}/${session_id}`);
+            let socket = new WebSocket(`wss://${hostname}:${port}/ws/${game_id}/${session_id}`);
 
 
             socket.onmessage = function (event) {
