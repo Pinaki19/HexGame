@@ -1567,8 +1567,8 @@
             let session_id = getCookie("session_id");
             console.log(session_id);
             let hostname = window.location.hostname; // Get current hostname
-            let port = window.location.port; // Get current port
-
+            var port = window.location.port || (protocol === 'https' ? '443' : '80');
+            console.log(port);
             // Check if port is empty or undefined, then use a default port
             if (!port) {
                 port = 9000; // Default port, change it to your preferred default
