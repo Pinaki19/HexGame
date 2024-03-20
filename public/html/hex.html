@@ -1566,11 +1566,17 @@
             let hostname = window.location.hostname; // Get current hostname
             let port = window.location.port; // Get current port
 
+            // Check if port is empty or undefined, then use a default port
             if (!port) {
-                port = 9000; 
+                port = 9000; // Default port, change it to your preferred default
             }
 
-            let socket = new WebSocket(`ws://${hostname}:${port}/ws/${game_id}/${session_id}`);
+            // Determine the WebSocket protocol based on the current page protocol
+            let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+
+            // Construct the WebSocket URL using the obtained hostname, port, and protocol
+            let socket = new WebSocket(`${wsProtocol}//${hostname}:${port}/ws/${game_id}/${session_id}`);
+
 
             socket.onmessage = function (event) {
                 let data = JSON.parse(event.data);

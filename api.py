@@ -59,7 +59,7 @@ async def welcome_user(request: Request, user: str = "user"):
 
 @app.get("/new_game")
 async def new_game():
-    return FileResponse("public\html\hex.html")
+    return FileResponse("public/html/hex.html")
 
 
 @app.get("/create-game")
