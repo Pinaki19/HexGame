@@ -122,8 +122,6 @@ async def join_game(game_id: str,request: Request) -> str:
     """
     Join the game with the provided game ID using the given session ID.
     """
-    s=[str(i) for i in game_mapping.keys()]
-    game_id=s[-1]
     id2=game_mapping[game_id][1]
     if id2 in cur_games and cur_games[id2]==game_id:
         raise HTTPException(
@@ -132,9 +130,6 @@ async def join_game(game_id: str,request: Request) -> str:
         "hex.html", {"request": request, "AI_MODE":False})
     response.set_cookie(key="session_id", value=id2)
     response.set_cookie(key="game_id", value=game_id)
-    cur_games[id2]=game_id
-    
-    # Resolve the future object
     return response
 
 
@@ -142,6 +137,8 @@ async def join_game(game_id: str,request: Request) -> str:
 async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str):
     await websocket.accept()
     if session_id==game_mapping[game_id][1]:
+        id2 = game_mapping[game_id][1]
+        cur_games[id2] = game_id
         game_coroutines[game_id].set_result(None)
     if game_id not in connections:
         connections[game_id] = {}
