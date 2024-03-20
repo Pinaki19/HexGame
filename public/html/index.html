@@ -24,6 +24,20 @@
     <link rel="stylesheet" href="public/css/slick.css">
     <!-- style CSS -->
     <link rel="stylesheet" href="public/css/style.css">
+    <style>
+        .custom-font {
+            font-family: 'Arial', sans-serif;
+            font-size: 16px;
+        }
+        .custom-font2 {
+            font-family: 'Cicada', sans-serif;
+            font-size: 18px;
+        }
+        .custom-font3 {
+            font-family: 'Times new', sans-serif;
+            font-size: 16px;
+        }
+    </style>
 </head>
 
 <body>
@@ -79,7 +93,7 @@
                                 <h1>Play Hex</h1>
                                 <p>Hex is a two player abstract strategy board game in which players attempt to connect opposite sides of a rhombus-shaped
                                 board made of hexagonal cells.</p>
-                                <a href="/new_game" class="btn_1">PLAY NOW</a>
+                                <a style="cursor:pointer;" onclick="showOptions()" class="btn_1">PLAY NOW</a>
                             </div>
                         </div>
                     </div>
@@ -184,6 +198,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 
 
     <!-- jquery plugins here-->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="public/js/jquery-1.12.1.min.js"></script>
     <!-- popper js -->
     <script src="public/js/popper.min.js"></script>
@@ -209,6 +224,146 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <script src="public/js/mail-script.js"></script>
     <!-- custom js -->
     <script src="public/js/custom.js"></script>
+    <script>
+        function showOptions(){
+            Swal.fire({
+                title: "Choose opponent",
+                text: "You can Invite a firend with the link provided or Play against our AI",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Invite Friend",
+                cancelButtonText: "Against AI",
+                customClass: {
+                    popup: 'custom-font',
+                    title: 'custom-font',
+                    content: 'custom-font',
+                    confirmButton: 'custom-font',
+                    cancelButton: 'custom-font'
+                },
+            }).then((result) => {
+                let gameId="ABCD";
+                if (result.isConfirmed) {
+                    fetch('/create-game')
+                        .then(response => {
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error('Failed to create game');
+                        })
+                        .then(data => {
+                            gameId = data.id;
+                            fetch(`/start-game/${gameId}`)
+                                .then(response => {
+                                    if (response.ok) {
+                                        return response.json();
+                                    }
+                                    throw new Error('Failed to create game');
+                                }).then( data =>{
+                                    console.log(data);
+                                    if(data.start){
+                                        location.href=`/new-game/${gameId}/?AI_MODE=False`
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error.message);
+                                });
+                            Swal.fire({
+                                title: "Invite Link",
+                                icon: "info",
+                                html: `
+                        <div>
+                        <h3 style='color:black;font-family:arial;font-size:18px;'>Waiting for other player</h3>
+                        <div class="col-md-15">
+                            <div class="input-group">
+                                <!-- Change the button to show a loading logo -->
+                                <button class="input-group-text" id="copyButton" style="cursor: pointer;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-copy"
+                                viewBox="0 0 16 16">
+                                <path fill-rule="evenodd"
+                                    d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z">
+                                </path>
+                                    </svg>
+                                </button>
+                                <textarea id="gameLink" class="form-control" placeholder="Invite Link" aria-label="Input group example" aria-describedby="basic-addon1" disabled rows="1"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                        `,
+                                customClass: {
+                                    popup: 'custom-font2',
+                                    title: 'custom-font2',
+                                    content: 'custom-font2',
+                                    confirmButton: 'custom-font2',
+                                    cancelButton: 'custom-font2'
+                                },
+                                showConfirmButton: false
+                            });
+                            setupPopupElements(gameId);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error.message);
+                        }); 
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    // Cancel button was pressed
+                    fetch('/create-game')
+                        .then(response => {
+                            if (response.ok) {
+                                return response.json();
+                            }
+                            throw new Error('Failed to create game');
+                        })
+                        .then(data => {
+                            gameId=data.id;
+                            Swal.fire({
+                                title: "AI Mode",
+                                text: "You are playing against AI.",
+                                icon: "info",
+                                confirmButtonText:"Start",
+                                customClass: {
+                                    popup: 'custom-font3',
+                                    title: 'custom-font3',
+                                    content: 'custom-font3',
+                                    confirmButton: 'custom-font3',
+                                    cancelButton: 'custom-font3'
+                                }
+                            }).then(result => {
+                                if(result.isConfirmed){
+                                    location.href = `/new-game/${gameId}/?AI_MODE=True`
+                                }
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error:', error.message);
+                        });
+                }
+            });
+        }
+        function setupPopupElements(gameId) {
+        // Get the copy button and the text area
+        const copyButton = document.getElementById('copyButton');
+        const gameLink = document.getElementById('gameLink');
+        gameLink.value = location.href + "join-game/" + gameId;
+
+         copyButton.addEventListener('mouseenter', function () {
+                copyButton.title = "Copy to Clipboard";
+        });
+        // Add click event listener to the copy button
+        copyButton.addEventListener('click', function () {
+            // Select the text inside the text area
+            gameLink.select();
+            gameLink.setSelectionRange(0, 99999); // For mobile devices
+            navigator.clipboard.writeText(gameLink.value);
+            document.getElementById("copyButton").innerHTML= `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="green" class="bi bi-check2-all" viewBox="0 0 16 16">
+                <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0"/>
+                <path d="m5.354 7.146.896.897-.707.707-.897-.896a.5.5 0 1 1 .708-.708"/>
+                </svg>`;
+        });
+    }
+
+    </script>
 </body>
 
 </html>

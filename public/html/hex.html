@@ -5,7 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hex Game Board</title>
-
+    {% if AI_MODE %}
+    <script>
+        var AI_MODE = true;
+        console.log(AI_MODE);
+    </script>
+    {% else %}
+    <script>
+        var AI_MODE = false;
+    </script>
+    {% endif %}
     <script src="
     https://cdn.jsdelivr.net/npm/onnxjs@0.1.8/dist/onnx.min.js
     "></script>
@@ -1359,11 +1368,35 @@
         var winner=null;
         var starting=true;
         var flag=true;
-        var AI_MODE=false;
         const time=20;
 
         let isConnecting = true;
+        async function AI_MOVE(index,moved){
+           const player = agent_is_blue ? "0" : "1";
+            const agent = agent_is_blue ? "1" : "0";
+            let ai_board = Array.from(matrix);
+            if(moved){
+                let id = index;
+                set_color(index, false, true);
+                matrix[id] = player;
+                ai_board[id]=player;
+            }
+            handle_click(matrix, player, agent, ai_board, agent_is_blue).then(best => {
+                set_color(best, true, false);
+                matrix[best] = agent;
+                if (HasWinner(matrix)) {
+                    console.log(winner);
+                    let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
+                    console.log("Game already won by", s);
+                    endGame(s);
+                    return;
+                }
 
+            })
+                .catch(error => {
+                    console.error('Error occurred:', error);
+                }); 
+        }
         $(document).ready(function () {
              $('.hexagon-group').mouseenter(function () {
                 var $hexagon = $(this).find('.hexagon polygon'); // Find the child polygon element
@@ -1404,26 +1437,9 @@
                 if (index < 0 || index > 120)
                     return;
                 if(AI_MODE){
-                    const player = agent_is_blue ? "0" : "1";
-                    const agent = agent_is_blue ? "1" : "0";
-                    let id = index;
-                    let ai_board = Array.from(matrix);
-                    ai_board[id] = player;
-                    set_color(index, false);
-                    matrix[id] = player;
-                    handle_click(index, matrix, player, agent, ai_board, agent_is_blue).then(best => {
-                        set_color(best, true);
-                        matrix[best] = agent;
-                        if (HasWinner(matrix)) {
-                            console.log(winner);
-                            let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
-                            console.log("Game already won by", s);
-                            return;
-                        }
-                    })
-                    .catch(error => {
-                            console.error('Error occurred:', error);
-                    });
+                    opponent_move();
+                    await AI_MOVE(index,true);
+                    you_move();
                     
                 }else{
                     let [row,col]= IdToPos(index);
@@ -1433,8 +1449,11 @@
                 
                 
             });
+            });
 
             async function makeMove(row, col) {
+                if(AI_MODE)
+                    return;
                 // Prepare data to be sent in the POST request body
                 console.log(row,col);
                 const data = { row: row, column: col };
@@ -1463,7 +1482,7 @@
                     });
             }
 
-            function set_color(index,Flag) {
+            function set_color(index,Flag,player) {
                 if(Flag){
                     var hexagonGroup = $('.hexagon-group').eq(index);
                     hexagonGroup.data('used', true);
@@ -1474,8 +1493,17 @@
                 var hexagonGroup = $('.hexagon-group').eq(index);
                 hexagonGroup.data('used', true);
                 var hexagon = hexagonGroup.find('.hexagon polygon'); // Find the child hexagon
-                //console.log(hexagon);
-                if(starting){
+                if(AI_MODE){
+                    if(player){
+                       hexagon.css('fill', Blue);
+                        matrix[index] = "0"; 
+                    }else{
+                        hexagon.css('fill', Red);
+                        matrix[index] = "1";
+                    }
+                    return;
+                }
+                else if(starting){
                     if (flag){
                         hexagon.css('fill', Red);
                         matrix[index]="1";
@@ -1500,17 +1528,22 @@
             var opponentTimer;
             var interval;
 
-            function startYouTimer() {
+            async function startYouTimer() {
                 clearInterval(interval);
                 youTimer=time;
                 $('#youTimer').text(youTimer);
-                interval = setInterval(function () {
+                interval = setInterval(async function () {
                     youTimer--;
                     $('#youTimer').text(youTimer);
                     if (youTimer == 0) {
                         clearInterval(interval);
                         makeMove(-1, -1);
                         Swal.fire("You ran out of time!");
+                        if(AI_MODE){
+                            opponent_move();
+                            await AI_MOVE();
+                            you_move();
+                        }
                     }
                 }, 1000);
             }
@@ -1529,9 +1562,11 @@
             }
 
             function you_move(){
+                flag=true;
                 startYouTimer();
             }
             function opponent_move(){
+                flag=false;
                 startOpponentTimer();
             }
             function start_game(){
@@ -1557,9 +1592,43 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         sendAcknowledgement();
+                        if(AI_MODE){
+                            starting = true;
+                            flag = true;
+                            start_game();
+                        }
                     } else {
                         location.href="/";
                     }
+                });
+            }
+
+            function endGame(name) {
+                let timerInterval;
+                Swal.fire({
+                    title: "Game Over!",
+                    imageUrl: name==="You"? "/public/img/YouWin.avif":"/public/img/YouLose.jpg",
+                    imageWidth: 400,
+                    imageHeight: 200,
+                    imageAlt: "Result image",
+                    text: name === "You" ? "Good Job!! You Won " : "Ah.. Opponent Won!",
+                    timer: 5000,
+                    didOpen: () => {
+                        timerInterval = setInterval(() => {
+                        }, 1000);
+                    },
+                    willClose: () => {
+                        clearInterval(timerInterval);
+                    },
+                    showConfirmButton:true,
+                    backdrop: name==="You"? `
+                        rgba(108, 122, 137,0.4)
+                        url("/public/img/win.gif")
+                        center bottom
+                        no-repeat
+                    `:""
+                }).then((result) => {
+                    location.href='/';
                 });
             }
             show();
@@ -1585,7 +1654,6 @@
 
             socket.onmessage = function (event) {
                 let data = JSON.parse(event.data);
-                console.log(data);
                 if(data.Type==1){
                     if (data.readyToStart) {
                         starting=data.turn;
@@ -1612,6 +1680,7 @@
                     console.log(winner);
                     let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
                     console.log("Game already won by", s);
+                    endGame(s);
                     return;
                 }
             };
@@ -1643,7 +1712,7 @@
                 const cookie = document.cookie.split('; ').find(row => row.startsWith(name));
                 return cookie ? cookie.split('=')[1] : null;
             }
-        });
+        
     </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const url = "public/11_2w4_2000.onnx";
+const url = "./../public/11_2w4_2000.onnx";
 let sess_init = false;
 let info = "";
 let max_rating;
@@ -81,8 +81,7 @@ function HasWinner(board) {
 function minimax(board, depth, current_player, first_player) {
     const other_player = current_player === "0" ? "1" : "0";
     if (HasWinner(board)) {
-        console.log("Yes has winner");
-        // other player won.
+        
         if (current_player === "0") {
             return [-1, null]; // blue won
         } else {
@@ -161,11 +160,11 @@ function AddBorder(x, y, input_values, border_color) {
 }
 
 function findSureWinMove(board, player) {
-    for (let depth of [1, 4]) {
+    for (let depth of [1, 3]) {
         const a = minimax(board, depth, player, player);
         if (player === '1') {
             if (a[0] > 0) {
-                return a[1];
+                return a[0];
             }
         } else {
             if (a[0] < 0) {
@@ -177,13 +176,13 @@ function findSureWinMove(board, player) {
     return null;
 }
 
-async function handle_click(index, matrix, player, agent, ai_board,agent_is_blue){
+async function handle_click(matrix, player, agent, ai_board,agent_is_blue){
     return new Promise((resolve, reject) => {
         const sure_win_move = findSureWinMove(ai_board, agent);
         if (sure_win_move !== null) {
-            matrix[index] = agent;
-            set_color(index, true);
-            resolve(index);
+            matrix[sure_win_move] = agent;
+            set_color(sure_win_move, true,false);
+            resolve(sure_win_move);
             return;
         }
         runModel(ai_board,agent_is_blue).then((result) => {
@@ -203,10 +202,7 @@ async function handle_click(index, matrix, player, agent, ai_board,agent_is_blue
                     score_sum += score;
                 }
             }
-            let id = index;
-
             let test_board = Array.from(matrix);
-            test_board[id] = player;
             test_board[best] = agent;
             const sure_win = findSureWinMove(test_board, player);
             if (sure_win !== null) {

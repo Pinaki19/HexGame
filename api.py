@@ -1,4 +1,4 @@
-import asyncio
+from asyncio import Future
 import json
 import random
 from fastapi import FastAPI, HTTPException, Request, WebSocket
@@ -7,15 +7,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse
-from fastapi.security import APIKeyCookie
+from fastapi.responses import RedirectResponse
+from fastapi import Query
 import uuid
 import os
 import uvicorn
 # Import pymongo
 import pymongo
 from datetime import datetime
-from typing import Union,Dict,List,Set
+from typing import Union, Dict, List, Set, Optional
 
 import string
 
@@ -39,14 +39,25 @@ app.add_middleware(
 
 
 app.mount("/public", StaticFiles(directory="public"), name="public")
-templates = Jinja2Templates(directory="public/html")
+templates = Jinja2Templates(directory="public/html/")
 
 game_mapping: Dict[str, List[str]] = {}
 cur_games: Dict[str,str] = {}
 acknowledgements:Dict[str,Set[str]] = {}
 connections: Dict[str, Dict[str,WebSocket]] = {}
-
+game_coroutines = {}
 game_state:Dict[str,List[List[int]]]={}
+
+
+@app.middleware("http")
+async def redirect_new_game(request: Request, call_next):
+    if request.url.path.startswith("/new-game/public"):
+        # Extract the part after "/public"
+        new_path = request.url.path.split("/public", 1)[-1]
+        # Redirect to "/public/whatever_was_there"
+        print(f"/public{new_path}")
+        return RedirectResponse(url=f"/public{new_path}")
+    return await call_next(request)
 
 @app.get("/")
 async def welcome_user(request: Request, user: str = "user"):
@@ -57,9 +68,19 @@ async def welcome_user(request: Request, user: str = "user"):
     response.set_cookie(key="session_id", value=session_id)
     return response
 
-@app.get("/new_game")
-async def new_game():
-    return FileResponse("public/html/hex.html")
+
+@app.get("/new-game/{game_id}")
+async def new_game(
+    request: Request,
+    game_id: str,
+    AI_MODE: Optional[bool] = Query(None)
+):
+    response = templates.TemplateResponse(
+        "hex.html", {"request": request, "AI_MODE": AI_MODE})
+    id = game_mapping[game_id][0]
+    response.set_cookie(key="session_id", value=id)
+    response.set_cookie(key="game_id", value=game_id)
+    return response
 
 
 @app.get("/create-game")
@@ -76,28 +97,45 @@ async def create_game(request: Request) -> Dict[str, str]:
     # Store the mapping between game ID and session IDs
     game_mapping[game_id] = [session_id1,session_id2]
     cur_games[session_id1]=game_id
-    response = FileResponse("public/html/hex.html")
-    response.set_cookie(key="session_id", value=session_id1)
-    response.set_cookie(key="game_id",value=game_id)
-    return response
+    future = Future()
+    game_coroutines[game_id] = future
+    return {"id":game_id}
 
+
+@app.get('/start-game/{game_id}')
+async def start(game_id: str):
+    print(game_id)
+    # Check if the game coroutine exists
+    if game_id in game_coroutines:
+        # Await the game coroutine
+        await game_coroutines[game_id]
+        print("resolved")
+        return {'start': True}
+    else:
+        print("no")
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    
 
 @app.get("/join-game/{game_id}")
 async def join_game(game_id: str,request: Request) -> str:
     """
     Join the game with the provided game ID using the given session ID.
     """
-    s="  ".join([str(i) for i in game_mapping.keys()])
-    if game_id not in game_mapping:
-        raise HTTPException(status_code=404, detail=s)
+    s=[str(i) for i in game_mapping.keys()]
+    game_id=s[-1]
     id2=game_mapping[game_id][1]
     if id2 in cur_games and cur_games[id2]==game_id:
         raise HTTPException(
             status_code=400, detail="Game already has two players")
-    response = FileResponse("public/html/hex.html")
+    response = templates.TemplateResponse(
+        "hex.html", {"request": request, "AI_MODE":False})
     response.set_cookie(key="session_id", value=id2)
     response.set_cookie(key="game_id", value=game_id)
     cur_games[id2]=game_id
+    
+    # Resolve the future object
+    game_coroutines[game_id].set_result(None)
     return response
 
 
