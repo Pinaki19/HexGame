@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from fastapi import Query
+from fastapi.websockets import WebSocketDisconnect
 import uuid
 import os
 import uvicorn
@@ -150,6 +151,10 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
             if data == '{"action":"acknowledge"}':
                 connections[game_id][session_id]=websocket
                 await handle_acknowledgment(game_id)
+    except WebSocketDisconnect:
+        # WebSocket connection closed
+        print("WebSocket connection closed")
+        # Perform cleanup or other actions as needed
     except Exception as e:
         print(f"WebSocket connection closed with exception: {e}")
     

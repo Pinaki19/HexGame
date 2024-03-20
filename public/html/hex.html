@@ -1369,6 +1369,7 @@
         var starting=true;
         var flag=true;
         const time=20;
+        var ongoing=false;
 
         let isConnecting = true;
         async function AI_MOVE(index,moved){
@@ -1483,6 +1484,8 @@
             }
 
             function set_color(index,Flag,player) {
+                if(!ongoing)
+                    return;
                 if(Flag){
                     var hexagonGroup = $('.hexagon-group').eq(index);
                     hexagonGroup.data('used', true);
@@ -1656,6 +1659,7 @@
                 let data = JSON.parse(event.data);
                 if(data.Type==1){
                     if (data.readyToStart) {
+                        ongoing=true;
                         starting=data.turn;
                         flag = data.turn;
                         start_game();
