@@ -135,13 +135,14 @@ async def join_game(game_id: str,request: Request) -> str:
     cur_games[id2]=game_id
     
     # Resolve the future object
-    game_coroutines[game_id].set_result(None)
     return response
 
 
 @app.websocket("/ws/{game_id}/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str):
     await websocket.accept()
+    if session_id==game_mapping[game_id][1]:
+        game_coroutines[game_id].set_result(None)
     if game_id not in connections:
         connections[game_id] = {}
     try:
