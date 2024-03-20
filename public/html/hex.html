@@ -1361,6 +1361,9 @@
         var flag=true;
         var AI_MODE=false;
         const time=20;
+
+        let isConnecting = true;
+
         $(document).ready(function () {
              $('.hexagon-group').mouseenter(function () {
                 var $hexagon = $(this).find('.hexagon polygon'); // Find the child polygon element
@@ -1575,8 +1578,12 @@
             let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             console.log(wsProtocol);
             // Construct the WebSocket URL using the obtained hostname, port, and protocol
-            let socket = new WebSocket(`wss://${hostname}:${port}/ws/${game_id}/${session_id}`);
-
+            let socket = new WebSocket(`${wsProtocol}//${hostname}:${port}/ws/${game_id}/${session_id}`);
+             // Event handler for when the WebSocket connection is opened
+            socket.onopen = function (event) {
+                console.log("WebSocket connection established.");
+                isConnecting = false;
+            };
 
             socket.onmessage = function (event) {
                 let data = JSON.parse(event.data);
@@ -1621,9 +1628,16 @@
                 console.log("WebSocket connection closed");
             };
 
-           function sendAcknowledgement() {
-                socket.send(JSON.stringify({ action: "acknowledge" }));
-                // Event handler for when the WebSocket connection receives a message
+           
+            function sendAcknowledgement() {
+                if (!isConnecting && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ action: "acknowledge" }));
+                } else {
+                    // If the connection is still connecting or not open, wait and retry
+                    setTimeout(() => {
+                        sendAcknowledgement();
+                    }, 500); // Retry after 1 second (adjust as needed)
+                }
             }
 
             // Function to retrieve cookie value by name
