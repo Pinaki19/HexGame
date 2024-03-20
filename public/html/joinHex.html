@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex Game Board</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.slim.js"
+        integrity="sha256-UgvvN8vBkgO0luPSUl2s8TIlOSYRoGFAX4jlCIm9Adc=" crossorigin="anonymous"></script>
+    <style>
+        .grid{
+    display: flex;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+}
+
+.board{
+    padding-top:5%;
+    display: flex;
+        /* flex-direction: row; */
+        justify-content:center;
+        align-items:center;
+        height: 110vh;
+}
+
+.navbar{
+    display:flex;
+    justify-content: space-around;
+    align-items: center;
+}
+    </style>
+
+    </head>
+
+<body>
+    <nav class="navbar bg-light">
+        <div>
+            <p>You</p>
+            <div id="youTimer">30</div>
+        </div>
+        <h1>Welcome to Hex!</h1>
+        <div>
+            <p>Opponent</p>
+            <div id="opponentTimer">30</div>
+        </div>
+    </nav>
+    <div class="board">
+        <svg class="grid" width="1000" height="800" viewBox="0 -3 30 30" version="1.1"
+                xmlns="http://www.w3.org/2000/svg">
+                <g>
+                    <g class="hexagon-group" transform="translate(0, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(0.8660254037844386, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(1.7320508075688772, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(2.598076211353316, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(3.4641016151377544, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(4.330127018922193, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(5.196152422706632, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.06217782649107, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.928203230275509, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(7.794228634059947, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(8.660254037844386, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(1.7320508075688772, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(2.598076211353316, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(3.4641016151377544, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(4.330127018922193, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(5.196152422706632, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.0621778264910695, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.928203230275509, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(7.794228634059948, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(8.660254037844386, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(9.526279441628825, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(10.392304845413262, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(3.4641016151377544, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(4.330127018922193, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(5.196152422706632, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.06217782649107, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.928203230275509, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(7.794228634059947, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(8.660254037844386, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(9.526279441628825, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(10.392304845413264, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(11.258330249197702, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.124355652982139, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(5.196152422706632, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.06217782649107, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.928203230275509, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(7.794228634059948, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(8.660254037844386, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(9.526279441628825, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(10.392304845413264, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(11.258330249197702, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.12435565298214, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.99038105676658, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(13.856406460551018, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.928203230275509, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(7.794228634059947, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(8.660254037844386, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(9.526279441628825, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(10.392304845413264, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(11.258330249197702, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.12435565298214, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.99038105676658, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(13.856406460551018, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(14.722431864335455, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(15.588457268119894, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(8.660254037844386, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(9.526279441628825, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(10.392304845413262, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(11.258330249197702, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.124355652982139, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.990381056766578, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(13.856406460551018, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(14.722431864335455, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(15.588457268119894, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(16.454482671904334, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(17.32050807568877, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(10.392304845413264, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(11.258330249197703, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.12435565298214, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.99038105676658, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(13.856406460551018, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(14.722431864335457, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(15.588457268119896, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(16.454482671904334, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(17.32050807568877, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(18.186533479473212, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.05255888325765, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.12435565298214, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.99038105676658, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(13.856406460551018, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(14.722431864335457, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(15.588457268119896, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(16.454482671904334, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(17.32050807568877, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(18.186533479473212, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.05255888325765, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.918584287042087, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(20.784609690826528, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(13.856406460551018, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(14.722431864335457, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(15.588457268119894, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(16.454482671904334, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(17.32050807568877, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(18.186533479473212, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.05255888325765, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.918584287042087, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(20.784609690826528, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(21.650635094610966, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(22.516660498395403, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(15.588457268119894, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(16.454482671904334, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(17.32050807568877, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(18.186533479473212, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.05255888325765, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.918584287042087, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(20.784609690826528, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(21.650635094610966, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(22.516660498395403, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(23.38268590217984, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(24.248711305964278, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(17.32050807568877, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(18.18653347947321, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.05255888325765, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.918584287042087, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(20.784609690826525, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(21.650635094610962, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(22.516660498395403, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(23.38268590217984, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(24.248711305964278, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(25.11473670974872, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(25.980762113533157, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: white; stroke: black; stroke-width: 0.1;"></polygon><text x="0" y="0.3em"
+                                text-anchor="middle"></text>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(-0.8660254037844386, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(-1.7320508075688772, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(9.526279441628825, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.05255888325765, 0)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(0.8660254037844386, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(-0.8660254037844386, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(11.258330249197702, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.918584287042087, 1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(2.598076211353316, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(0, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.99038105676658, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(20.784609690826528, 3)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(4.330127018922194, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(0.8660254037844388, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(14.722431864335457, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(21.650635094610966, 4.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.06217782649107, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(1.7320508075688772, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(16.454482671904334, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(22.516660498395403, 6)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(7.794228634059947, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(2.5980762113533156, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(18.186533479473212, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(23.382685902179844, 7.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(9.526279441628825, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(3.464101615137755, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(19.918584287042087, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(24.24871130596428, 9)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(11.258330249197702, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(4.330127018922193, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(21.650635094610966, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(25.11473670974872, 10.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(12.990381056766578, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(5.196152422706632, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(23.382685902179844, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(25.98076211353316, 12)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(14.722431864335455, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.0621778264910695, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(25.11473670974872, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(26.846787517317598, 13.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(16.454482671904334, -1.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(6.928203230275509, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(26.846787517317594, 16.5)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(251, 41, 67); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                    <g class="hexagon-group" transform="translate(27.712812921102035, 15)" draggable="true">
+                        <g class="hexagon">
+                            <polygon
+                                points="0.8660254037844387,0.49999999999999994 6.123233995736766e-17,1 -0.8660254037844387,0.49999999999999994 -0.8660254037844388,-0.4999999999999997 -1.8369701987210297e-16,-1 0.8660254037844384,-0.5000000000000004"
+                                style="fill: rgb(6, 154, 243); stroke: black; stroke-width: 0.1;"></polygon>
+                        </g>
+                    </g>
+                </g>
+            </svg>
+        
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        const Blue= '#3568ea';
+        const Red= '#ea3535';
+        const Def='white';
+        var matrix = [];
+        var rows = 11;
+        var cols = 11;
+
+        function init(){
+            for (var i = 0; i < rows; i++) {
+                var row = [];
+                for (var j = 0; j < cols; j++) {
+                    row.push(0); 
+                }
+                matrix.push(row);
+            }
+            
+        }
+        var starting=true;
+        var flag=true;
+        const time=20;
+        $(document).ready(function () {
+             $('.hexagon-group').mouseenter(function () {
+                var $hexagon = $(this).find('.hexagon polygon'); // Find the child polygon element
+                if (!$hexagon.length) return; // If not found, exit
+
+                var index = $('.hexagon-group').index(this);
+                if (index < 0 || index > 120) return;
+                if ($(this).data('used')) return;
+                if (flag) {
+                    if (starting) {
+                        $hexagon.css('fill', Blue); // Set the fill color to blue
+                    } else {
+                        $hexagon.css('fill', Red); // Set the fill color to red
+                    }
+                }
+            });
+
+            $('.hexagon-group').mouseleave(function () {
+                var $hexagon = $(this).find('.hexagon polygon'); // Find the child polygon element
+                if (!$hexagon.length) return; // If not found, exit
+                var index = $('.hexagon-group').index(this);
+                if (index < 0 || index > 120)
+                    return;
+                if($(this).data('used'))
+                    return;
+                $hexagon.css('fill', Def);
+            });
+            $('.hexagon-group').click(async function () {
+                if(!flag)
+                    return;
+                var index = $('.hexagon-group').index(this);
+                console.log(index);
+                if (index<0 || index>120)
+                    return;
+                if (!$(this).data('used')) {
+                    console.log(index);
+                    var rowNum=index%11;
+                    var colNum=Math.floor(index/11);
+                    await makeMove(rowNum, colNum);
+                }
+                
+            });
+
+            async function makeMove(row, col) {
+                // Prepare data to be sent in the POST request body
+                console.log(row,col);
+                const data = { row: row, column: col };
+
+                // Send a POST request to the server's /make_move endpoint
+                fetch('/make_move', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        // Optionally handle the response here
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Optionally handle the response data here
+                        console.log('Server response:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+
+            function set_color(row,col) {
+                var index = (col) * 11 + row;
+                console.log(flag);
+                console.log(starting);
+                // Select the hexagon element using its index
+                var hexagonGroup = $('.hexagon-group').eq(index);
+                hexagonGroup.data('used', true);
+                var hexagon = hexagonGroup.find('.hexagon'); // Find the child hexagon
+                if(starting){
+                    if (flag)
+                        hexagon.css('fill', Red);
+                    else
+                        hexagon.css('fill', Blue);
+                }else{
+                    if (!flag)
+                        hexagon.css('fill', Red);
+                    else
+                        hexagon.css('fill', Blue);
+                }
+                
+            }
+
+            var youTimer ;
+            var opponentTimer;
+            var interval;
+
+            function startYouTimer() {
+                clearInterval(interval);
+                youTimer=time;
+                $('#youTimer').text(youTimer);
+                interval = setInterval(function () {
+                    youTimer--;
+                    $('#youTimer').text(youTimer);
+                    if (youTimer == 0) {
+                        clearInterval(interval);
+                        makeMove(-1, -1);
+                        Swal.fire("You ran out of time!");
+                    }
+                }, 1000);
+            }
+
+            function startOpponentTimer() {
+                clearInterval(interval);
+                opponentTimer=time;
+                $('#opponentTimer').text(opponentTimer);
+                interval = setInterval(function () {
+                    opponentTimer--;
+                    $('#opponentTimer').text(opponentTimer);
+                    if (opponentTimer == 0) {
+                        clearInterval(interval);
+                    }
+                }, 1000);
+            }
+
+            function you_move(){
+                startYouTimer();
+            }
+            function opponent_move(){
+                startOpponentTimer();
+            }
+            function start_game(){
+                init();
+                $('#opponentTimer').text(time);
+                $('#youTimer').text(time);
+                var youTimer = time;
+                var opponentTimer = time;
+                var interval;
+                if (flag) {
+                    startYouTimer();
+                }else
+                    startOpponentTimer();
+            }
+            function show(){
+                swal.fire({
+                    title: "Are you Ready to start?",
+                    text: "You will not be able to stop unless you wish to surrender!",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Confirm",
+                    cancelButtonText: "cancel",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        sendAcknowledgement();
+                    } else {
+                        location.href="/";
+                    }
+                });
+            }
+            show();
+            let game_id = getCookie("game_id");
+            let session_id = getCookie("session_id");
+            console.log(session_id);
+            let socket = new WebSocket(`ws://localhost:9000/ws/${game_id}/${session_id}`);
+            socket.onmessage = function (event) {
+                let data = JSON.parse(event.data);
+                console.log(data);
+                if(data.Type==1){
+                    if (data.readyToStart) {
+                        starting=data.turn;
+                        flag = data.turn;
+                        start_game();
+                    } else {
+                        console.error("Error: Game cannot be started yet");
+                    }
+                }else if(data.Type==2){
+                    flag = data.turn;
+                    if (flag)
+                        you_move();
+                    else
+                        opponent_move();
+                }else{
+                    flag = data.turn;
+                    set_color(data.row,data.column);
+                    if(flag)
+                        you_move();
+                    else
+                        opponent_move();
+                }
+            };
+
+            // Event handler for WebSocket errors
+            socket.onerror = function (error) {
+                console.error("WebSocket error:", error);
+            };
+
+            // Event handler for WebSocket close
+            socket.onclose = function (event) {
+                console.log("WebSocket connection closed");
+            };
+
+           function sendAcknowledgement() {
+                socket.send(JSON.stringify({ action: "acknowledge" }));
+                // Event handler for when the WebSocket connection receives a message
+            }
+
+            // Function to retrieve cookie value by name
+            function getCookie(name) {
+                const cookie = document.cookie.split('; ').find(row => row.startsWith(name));
+                return cookie ? cookie.split('=')[1] : null;
+            }
+        });
+    </script>
+</body>
+</html>
