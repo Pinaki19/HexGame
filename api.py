@@ -1,4 +1,5 @@
 from asyncio import Future
+import asyncio
 import json
 import random
 from fastapi import FastAPI, HTTPException, Request, WebSocket
@@ -44,10 +45,8 @@ templates = Jinja2Templates(directory="public/html/")
 
 game_mapping: Dict[str, List[str]] = {}
 cur_games: Dict[str,str] = {}
-acknowledgements:Dict[str,Set[str]] = {}
 connections: Dict[str, Dict[str,WebSocket]] = {}
 game_coroutines = {}
-game_state:Dict[str,List[List[int]]]={}
 
 
 @app.middleware("http")
@@ -62,6 +61,10 @@ async def redirect_new_game(request: Request, call_next):
 
 @app.get("/")
 async def welcome_user(request: Request, user: str = "user"):
+    print(game_mapping)
+    print(cur_games)
+    print(connections)
+    print(game_coroutines)
     session_id = request.cookies.get("session_id")
     if session_id is None:
         session_id = str(uuid.uuid4())
@@ -76,6 +79,9 @@ async def new_game(
     game_id: str,
     AI_MODE: Optional[bool] = Query(None)
 ):
+    if game_id not in game_mapping:
+        raise HTTPException(
+            status_code=400, detail="Game with specified Id does not exist")
     response = templates.TemplateResponse(
         "hex.html", {"request": request, "AI_MODE": AI_MODE})
     id = game_mapping[game_id][0]
@@ -97,7 +103,6 @@ async def create_game(request: Request) -> Dict[str, str]:
     session_id2 = str(uuid.uuid4())  # Generate session ID for player 2
     # Store the mapping between game ID and session IDs
     game_mapping[game_id] = [session_id1,session_id2]
-    cur_games[session_id1]=game_id
     future = Future()
     game_coroutines[game_id] = future
     return {"id":game_id}
@@ -105,8 +110,9 @@ async def create_game(request: Request) -> Dict[str, str]:
 
 @app.get('/start-game/{game_id}')
 async def start(game_id: str):
-    print(game_id)
-    # Check if the game coroutine exists
+    if game_id not in game_mapping:
+        raise HTTPException(
+            status_code=400, detail="Game with specified Id does not exist")
     if game_id in game_coroutines:
         # Await the game coroutine
         await game_coroutines[game_id]
@@ -123,6 +129,9 @@ async def join_game(game_id: str,request: Request) -> str:
     """
     Join the game with the provided game ID using the given session ID.
     """
+    if game_id not in game_mapping:
+        raise HTTPException(
+            status_code=400, detail="Game with specified Id does not exist")
     id2=game_mapping[game_id][1]
     if id2 in cur_games and cur_games[id2]==game_id:
         raise HTTPException(
@@ -137,47 +146,97 @@ async def join_game(game_id: str,request: Request) -> str:
 @app.websocket("/ws/{game_id}/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str):
     await websocket.accept()
-    if session_id==game_mapping[game_id][1]:
-        id2 = game_mapping[game_id][1]
-        cur_games[id2] = game_id
+    if session_id == game_mapping[game_id][1]:
         game_coroutines[game_id].set_result(None)
     if game_id not in connections:
         connections[game_id] = {}
+    connections[game_id][session_id] = websocket
     try:
         while True:
             # Receive message from client (acknowledgment)
             data = await websocket.receive_text()
             print(data)
             if data == '{"action":"acknowledge"}':
-                connections[game_id][session_id]=websocket
+                cur_games[session_id] = game_id
                 await handle_acknowledgment(game_id)
+            
     except WebSocketDisconnect:
         # WebSocket connection closed
-        print("WebSocket connection closed")
+        try:
+            other= 1 if game_mapping[game_id][0]==session_id else 0
+            print("Other:",other)
+            other_session=game_mapping[game_id][other]
+            if game_id in connections and other_session in connections[game_id]:
+                socket=connections[game_id][other_session]
+                print("sock: ",socket)
+                message = json.dumps(
+                    {"Type": 5, "win":True})
+                await socket.send_text(message)
+                connections.pop(game_id,None)
+                game_mapping.pop(game_id)
+                print("Game:",game_mapping)
+        except Exception as e:
+            print(f"WebSocket connection closed with exception: {e} 1")
         # Perform cleanup or other actions as needed
     except Exception as e:
-        print(f"WebSocket connection closed with exception: {e}")
-    
+        print(f"WebSocket connection closed with exception: {e} 2")
+
 
 async def handle_acknowledgment(game_id: str):
-    if len(connections.get(game_id, {})) == 2:
+    s1,s2=game_mapping[game_id]
+    if s1 in cur_games and s2 in cur_games and len(connections.get(game_id, {})) == 2:
         await start_game(game_id)
 
 
 async def start_game(game_id: str):
-    if (len(connections[game_id].values())!=2):
-        return False
-    temp=[]
-    for i in range(11):
-        temp.append([0 for i in range(11)])
-    game_state[game_id]=temp
-    s1,s2=game_mapping[game_id]
-    sock1,sock2=connections[game_id][s1],connections[game_id][s2]
-    turn = random.randint(0, 1)
-    if(turn==1):
-        sock1, sock2 = connections[game_id][s2], connections[game_id][s1]
-    await sock1.send_text('{"Type":1,"readyToStart": true,"turn":true}')
-    await sock2.send_text('{"Type":1,"readyToStart": true,"turn":false}')
+    try:
+        if len(connections[game_id].values()) != 2:
+            return False
+
+        s1, s2 = game_mapping[game_id]
+        sock1, sock2 = connections[game_id][s1], connections[game_id][s2]
+
+        # Randomly choose turn
+        turn = random.randint(0, 1)
+        if turn == 1:
+            sock1, sock2 = sock2, sock1  # Swap sockets
+
+        # Send start message to sockets
+        start_message1 = '{"Type":1,"readyToStart":true,"turn":true}'
+        start_message2 = '{"Type":1,"readyToStart":true,"turn":false}'
+
+        # Define a timeout for waiting for responses
+        timeout = 4 # Timeout in seconds
+
+        # Send messages and wait for responses
+        tasks = [
+            sock1.send_text(start_message1),
+            sock2.send_text(start_message2)
+        ]
+        done, pending = await asyncio.wait(tasks, timeout=timeout, return_when=asyncio.FIRST_EXCEPTION)
+
+        # Check if any task failed
+        if not done:
+            # One or both tasks failed
+            for task in pending:
+                task.cancel()  # Cancel pending tasks
+            if sock1.exception():
+                # Send win message to sock2
+                await sock2.send_text('{"Type":5,"win":true}')
+            elif sock2.exception():
+                # Send win message to sock1
+                await sock1.send_text('{"Type":5,"win":true}')
+        else:
+            # Both tasks completed successfully
+            for task in done:
+                task.result()  # Ensure no exceptions are raised
+    except asyncio.TimeoutError:
+        # Handle timeout exception
+        print("Timeout error: Both tasks failed to complete within the timeout period")
+        s1,s2=game_mapping[game_id]
+    except Exception as e:
+        print(f"Error in starting game: {e}")
+    
     
     
 @app.post("/make_move")
@@ -202,20 +261,10 @@ async def make_move(request: Request, data:Move):
         raise HTTPException(
             status_code=400, detail="Player number not found for session ID")
 
-    # Retrieve game state (matrix) for the given game_id
-    game = game_state.get(game_id)
-    if game is None:
-        raise HTTPException(
-            status_code=404, detail="Game state not found for game ID")
-    # Update the game state with the player's move
     flag=False
     if (row < 0 or column < 0):
         flag=False
     else:
-        if(game[row][column]!=0):
-            raise HTTPException(
-                status_code=404, detail="Invalid move")
-        game[row][column] = player_number+1
         flag=True
     t= 0 if player_number==1 else 1
     sock1 = connections[game_id][game_mapping[game_id][t]]
@@ -233,6 +282,23 @@ async def make_move(request: Request, data:Move):
     await sock2.send_text(message2)
     return {"message": "Move successfully made"}
 
+@app.get('/clear-all')
+async def my_task():
+    print("started")
+    while True:
+        l1=game_mapping.keys()
+        l2=connections.keys()
+        l3=game_coroutines.keys()
+        l4=cur_games.keys()
+        await asyncio.sleep(10)  # 30 minutes in seconds
+        for mem in l1:
+            game_mapping.pop(l1,None)
+        for mem in l2:
+            connections.pop(mem,None)
+        for mem in l3:
+            game_coroutines.pop(mem,None)
+        for mem in l4:
+            cur_games.pop(mem,None)
 
 if __name__ == "__main__":
     uvicorn.run(app,port=9000)

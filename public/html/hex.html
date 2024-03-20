@@ -8,11 +8,12 @@
     {% if AI_MODE %}
     <script>
         var AI_MODE = true;
-        console.log(AI_MODE);
+        var ongoing = true;
     </script>
     {% else %}
     <script>
         var AI_MODE = false;
+        var ongoing = false;
     </script>
     {% endif %}
     <script src="
@@ -1369,7 +1370,6 @@
         var starting=true;
         var flag=true;
         const time=20;
-        var ongoing=false;
 
         let isConnecting = true;
         async function AI_MOVE(index,moved){
@@ -1672,7 +1672,11 @@
                         you_move();
                     else
                         opponent_move();
-                }else{
+                }else if(data.Type==5){
+                    endGame("You");
+                    return;
+                }
+                else{
                     flag = data.turn;
                     set_color(PosToId(data.row,data.column),false);
                     if(flag)
