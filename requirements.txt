@@ -2,3 +2,4 @@ fastapi==0.100.0
 pymongo==4.6.0
 uvicorn
 jinja2
+gunicorn
