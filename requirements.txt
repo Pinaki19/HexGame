@@ -3,3 +3,4 @@ pymongo==4.6.0
 uvicorn
 jinja2
 gunicorn
+uvicorn[standard]
