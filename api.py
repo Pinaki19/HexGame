@@ -202,36 +202,13 @@ async def start_game(game_id: str):
         start_message2 = '{"Type":1,"readyToStart":true,"turn":false}'
 
         # Define a timeout for waiting for responses
-        timeout = 4 # Timeout in seconds
-
-        # Send messages and wait for responses
-        tasks = [
-            sock1.send_text(start_message1),
-            sock2.send_text(start_message2)
-        ]
-        done, pending = await asyncio.wait(tasks, timeout=timeout, return_when=asyncio.FIRST_EXCEPTION)
-        turn_counts[game_id]=0
-        # Check if any task failed
-        if not done:
-            # One or both tasks failed
-            for task in pending:
-                task.cancel()  # Cancel pending tasks
-            if sock1.exception():
-                # Send win message to sock2
-                await sock2.send_text('{"Type":5,"win":true}')
-            elif sock2.exception():
-                # Send win message to sock1
-                await sock1.send_text('{"Type":5,"win":true}')
-        else:
-            # Both tasks completed successfully
-            for task in done:
-                task.result()  # Ensure no exceptions are raised
-    except asyncio.TimeoutError:
-        # Handle timeout exception
-        print("Timeout error: Both tasks failed to complete within the timeout period")
-    except Exception as e:
-        print(f"Error in starting game: {e}")
     
+        await sock1.send_text(start_message1),
+        await sock2.send_text(start_message2)
+        turn_counts[game_id]=0
+    except:
+        print("Error")
+        
     
     
 @app.post("/make_move")
