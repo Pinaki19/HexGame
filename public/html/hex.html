@@ -1626,6 +1626,9 @@
                     text: "You will not be able to stop unless you wish to surrender!",
                     type: "warning",
                     showCancelButton: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: false,
                     confirmButtonColor: "#DD6B55",
                     confirmButtonText: "Confirm",
                     cancelButtonText: "cancel",
@@ -1743,7 +1746,7 @@
                     set_color(PosToId(data.row,data.column),false);
                     moveCount++;
                     if(moveCount===1 && !starting){
-                        setTimeout(ask_for_switch,5000);
+                        setTimeout(ask_for_switch,4000);
                     }else{
                         if (flag)
                             you_move();
@@ -1894,8 +1897,7 @@
                     // Show a confirmation dialog
                     var confirmationMessage = 'Are you sure you want to leave this page? ';
                     e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
-
-                    return confirmationMessage;
+                    window.location.href = '/';
                 });
         
     </script>
