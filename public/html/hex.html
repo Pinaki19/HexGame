@@ -1599,7 +1599,9 @@
                 }else
                     startOpponentTimer();
             }
-            function show(){
+            async function show(){
+                if (AI_MODE)
+                    await load_model();
                 swal.fire({
                     title: "Are you Ready to start?",
                     text: "You will not be able to stop unless you wish to surrender!",
