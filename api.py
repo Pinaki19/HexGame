@@ -47,17 +47,9 @@ game_mapping: Dict[str, List[str]] = {}
 cur_games: Dict[str,str] = {}
 connections: Dict[str, Dict[str,WebSocket]] = {}
 game_coroutines = {}
+turn_counts={}
+turn_details={}
 
-
-@app.middleware("http")
-async def redirect_new_game(request: Request, call_next):
-    if request.url.path.startswith("/new-game/public"):
-        # Extract the part after "/public"
-        new_path = request.url.path.split("/public", 1)[-1]
-        # Redirect to "/public/whatever_was_there"
-        print(f"/public{new_path}")
-        return RedirectResponse(url=f"/public{new_path}")
-    return await call_next(request)
 
 @app.get("/")
 async def welcome_user(request: Request, user: str = "user"):
@@ -198,6 +190,10 @@ async def start_game(game_id: str):
 
         # Randomly choose turn
         turn = random.randint(0, 1)
+        if not turn:
+            turn_details[s1]=True
+        else:
+            turn_details[s2]=True
         if turn == 1:
             sock1, sock2 = sock2, sock1  # Swap sockets
 
@@ -214,7 +210,7 @@ async def start_game(game_id: str):
             sock2.send_text(start_message2)
         ]
         done, pending = await asyncio.wait(tasks, timeout=timeout, return_when=asyncio.FIRST_EXCEPTION)
-
+        turn_counts[game_id]=0
         # Check if any task failed
         if not done:
             # One or both tasks failed
@@ -233,7 +229,6 @@ async def start_game(game_id: str):
     except asyncio.TimeoutError:
         # Handle timeout exception
         print("Timeout error: Both tasks failed to complete within the timeout period")
-        s1,s2=game_mapping[game_id]
     except Exception as e:
         print(f"Error in starting game: {e}")
     
@@ -280,7 +275,24 @@ async def make_move(request: Request, data:Move):
     
     await sock1.send_text(message1)
     await sock2.send_text(message2)
+    turn_counts[game_id]+=1
     return {"message": "Move successfully made"}
+
+@app.get('/swith_player')
+async def switch_player(request:Request):
+    game_id = request.cookies.get("game_id")
+    session_id = request.cookies.get("session_id")
+    s1,s2=game_mapping[game_id]
+    if s1!=session_id:
+        s1,s2=s2,s1
+    if turn_counts[game_id]==1 and session_id not in turn_details:
+        sock1 = connections[game_id][s1]
+        sock2 = connections[game_id][s2]
+        message1 = json.dumps({"Type": 3, "starting": True,"turn":False})
+        message2 = json.dumps({"Type": 3, "starting": False,"turn":True})
+        await sock1.send_text(message1)
+        await sock2.send_text(message2)
+    return {"message": "swith request processed"}
 
 @app.get('/clear-all')
 async def my_task():

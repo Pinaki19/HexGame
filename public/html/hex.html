@@ -31,20 +31,36 @@
     <script type="text/javascript" src="/public/App.js"></script>
         <style>
         .grid{
+            display: flex;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .color-red{
+            color:#ea3535 !important;
+        }
+
+        .color-blue{
+            color:#3568ea !important;
+        }
+
+.board {
     display: flex;
-        height: 100vh;
-        align-items: center;
-        justify-content: center;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-shrink: 1.5;
 }
 
-.board{
-    padding-top:5%;
-    display: flex;
-        /* flex-direction: row; */
-        justify-content:center;
-        align-items:center;
-        height: 110vh;
+@media (max-width: 768px) {
+    .board {
+        height: auto; /* or any other value suitable for mobile devices */
+        width: auto;
+    }
 }
+
 
 .navbar{
     display:flex;
@@ -68,7 +84,7 @@
         </div>
     </nav>
     <div class="board">
-        <svg class="grid" width="1000" height="800" viewBox="0 -3 30 30" version="1.1"
+        <svg class="grid" width="800" height="600" viewBox="0 -3 25.75 30" version="1.1"
                 xmlns="http://www.w3.org/2000/svg">
                 <g>
                     <g class="hexagon-group" transform="translate(0, 0)" draggable="true">
@@ -1370,6 +1386,7 @@
         var starting=true;
         var flag=true;
         const time=20;
+        var moveCount=0;
 
         let isConnecting = true;
         async function AI_MOVE(index,moved){
@@ -1400,6 +1417,8 @@
         }
         $(document).ready(function () {
              $('.hexagon-group').mouseenter(function () {
+                if(!ongoing)
+                    return;
                 var $hexagon = $(this).find('.hexagon polygon'); // Find the child polygon element
                 if (!$hexagon.length) return; // If not found, exit
 
@@ -1432,7 +1451,7 @@
                     console.log("Game already won by",s);
                     return;
                 }
-                if(!flag || $(this).data('used'))
+                if(!flag || $(this).data('used')||moveCount==1 && !AI_MODE|| !ongoing)
                     return;
                 var index = $('.hexagon-group').index(this);
                 if (index < 0 || index > 120)
@@ -1444,11 +1463,9 @@
                     
                 }else{
                     let [row,col]= IdToPos(index);
-                    console.log(row,col);
+                    
                     await makeMove(row,col);
                 }
-                
-                
             });
             });
 
@@ -1456,7 +1473,6 @@
                 if(AI_MODE)
                     return;
                 // Prepare data to be sent in the POST request body
-                console.log(row,col);
                 const data = { row: row, column: col };
 
                 // Send a POST request to the server's /make_move endpoint
@@ -1637,7 +1653,6 @@
             show();
             let game_id = getCookie("game_id");
             let session_id = getCookie("session_id");
-            console.log(session_id);
             let hostname = window.location.hostname; // Get current hostname
             var port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
            
@@ -1645,8 +1660,7 @@
             console.log(port);
             // Determine the WebSocket protocol based on the current page protocol
             let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            console.log(wsProtocol);
-            console.log(`${wsProtocol}//${hostname}:${port}/ws/${game_id}/${session_id}`);
+            
             // Construct the WebSocket URL using the obtained hostname, port, and protocol
             let socket = new WebSocket(`${wsProtocol}//${hostname}:${port}/ws/${game_id}/${session_id}`);
              // Event handler for when the WebSocket connection is opened
@@ -1659,10 +1673,12 @@
                 let data = JSON.parse(event.data);
                 if(data.Type==1){
                     if (data.readyToStart) {
-                        ongoing=true;
-                        starting=data.turn;
+                        moveCount=0;
+                        ongoing = true;
+                        starting = data.turn;
                         flag = data.turn;
-                        start_game();
+                        show_matchPopup(); 
+                        
                     } else {
                         console.error("Error: Game cannot be started yet");
                     }
@@ -1672,20 +1688,44 @@
                         you_move();
                     else
                         opponent_move();
-                }else if(data.Type==5){
+                } else if (data.Type==3) {
+                    moveCount++;
+                    starting=data.starting;
+                    flag=data.turn;
+                    Swal.fire({
+                        title: "Switched!",
+                        text: starting? "You are now playing as BLUE player":"You are now playing as RED player, make your move",
+                        icon: "info",
+                        showConfirmButton:false,
+                        timer: 4000,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false
+                    }).then((result) => {
+                        if (flag)
+                            you_move();
+                        else
+                            opponent_move();
+                    });
+                }
+                else if(data.Type==5){
                     endGame("You");
                     return;
                 }
                 else{
                     flag = data.turn;
                     set_color(PosToId(data.row,data.column),false);
-                    if(flag)
-                        you_move();
-                    else
-                        opponent_move();
+                    moveCount++;
+                    if(moveCount===1 && !starting){
+                        setTimeout(ask_for_switch,5000);
+                    }else{
+                        if (flag)
+                            you_move();
+                        else
+                            opponent_move();
+                    }
                 }
                 if (HasWinner(matrix)) {
-                    console.log(winner);
                     let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
                     console.log("Game already won by", s);
                     endGame(s);
@@ -1702,6 +1742,100 @@
             socket.onclose = function (event) {
                 console.log("WebSocket connection closed");
             };
+
+            function ask_for_switch(){
+                Swal.fire({
+                    title: "Switch turns?",
+                    text: "You can become the Blue player!",
+                    icon: "question",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: false,
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Switch!",
+                    cancelButtonText:"Cancel",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch('/swith_player', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            // Optionally handle the response here
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Optionally handle the response data here
+                            console.log('Server response:', data);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    }else{
+                        moveCount++;
+                        if (flag)
+                            you_move();
+                        else
+                            opponent_move();
+                    }
+                });
+            }
+
+            function show_matchPopup() {
+                    let timerInterval;
+                Swal.fire({
+                    title: starting? "You are playing as BLUE":"You are playing as RED", 
+                    html: "Match starts in <b>10</b> seconds",
+                    customClass: {
+                        title: starting? 'color-blue':'color-red'
+                    },
+                    timer: 10000,
+                    showConfirmButton:false,
+                    timerProgressBar: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        const timer = Swal.getPopup().querySelector("b");
+                        timerInterval = setInterval(() => {
+                            timer.textContent = `${Math.ceil(Swal.getTimerLeft()/1000)}`;
+                        }, 1000);
+                    },
+                    willClose: () => {
+                        clearInterval(timerInterval);
+                    },
+                    footer: `The Game will use &nbsp<a href="#" onclick="searchPieRule()"> Pie rule </a><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                    <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/>
+                    </svg>`
+                    
+                }).then((result) => {
+                    /* Read more about handling dismissals below */
+                    if (result.dismiss === Swal.DismissReason.timer) {
+                        console.log("I was closed by the timer");
+                        start_game();
+                    }
+                });
+            }
+
+            function searchPieRule() {
+                // Define the search query
+                const searchQuery = encodeURIComponent("Pie rule in hex game");
+
+                // Construct the URL for the search
+                const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+
+                // Open the search URL in a new tab
+                window.open(searchUrl, "_blank");
+            }
 
            
             function sendAcknowledgement() {
