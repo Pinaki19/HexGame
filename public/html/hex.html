@@ -1600,8 +1600,6 @@
                     startOpponentTimer();
             }
             async function show(){
-                if (AI_MODE)
-                    load_model();
                 swal.fire({
                     title: "Are you Ready to start?",
                     text: "You will not be able to stop unless you wish to surrender!",
@@ -1610,13 +1608,14 @@
                     confirmButtonColor: "#DD6B55",
                     confirmButtonText: "Confirm",
                     cancelButtonText: "cancel",
-                }).then((result) => {
+                }).then(async (result) => {
                     if (result.isConfirmed) {
                         sendAcknowledgement();
                         if(AI_MODE){
                             starting = true;
                             flag = true;
-                            start_game();
+                            show_matchPopup();
+                            await load_model();
                         }
                     } else {
                         location.href="/";
@@ -1671,7 +1670,7 @@
                 isConnecting = false;
             };
 
-            socket.onmessage = function (event) {
+            socket.onmessage = async function (event) {
                 let data = JSON.parse(event.data);
                 if(data.Type==1){
                     if (data.readyToStart) {
@@ -1826,6 +1825,7 @@
                         start_game();
                     }
                 });
+                
             }
 
             function searchPieRule() {
