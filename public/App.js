@@ -6,6 +6,7 @@ const sess = new onnx.InferenceSession();
 
 async function load_model() {
     await sess.loadModel(url);
+    start_game();
     sess_init = true;
 }
 

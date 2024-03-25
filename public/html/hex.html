@@ -1615,7 +1615,6 @@
                             starting = true;
                             flag = true;
                             show_matchPopup();
-                            await load_model();
                         }
                     } else {
                         location.href="/";
@@ -1822,7 +1821,6 @@
                     /* Read more about handling dismissals below */
                     if (result.dismiss === Swal.DismissReason.timer) {
                         console.log("I was closed by the timer");
-                        start_game();
                     }
                 });
                 
