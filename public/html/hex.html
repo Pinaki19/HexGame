@@ -1648,6 +1648,7 @@
             }
 
             function endGame(name) {
+                ongoing=false;
                 let timerInterval;
                 Swal.fire({
                     title: "Game Over!",
@@ -1881,6 +1882,21 @@
                 const cookie = document.cookie.split('; ').find(row => row.startsWith(name));
                 return cookie ? cookie.split('=')[1] : null;
             }
+
+            window.addEventListener('beforeunload', function (e) {
+                    if(!ongoing)
+                        return;
+                    // Cancel the event
+                    e.preventDefault();
+                    // Chrome requires returnValue to be set
+                    e.returnValue = '';
+
+                    // Show a confirmation dialog
+                    var confirmationMessage = 'Are you sure you want to leave this page? ';
+                    e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
+
+                    return confirmationMessage;
+                });
         
     </script>
 </body>
