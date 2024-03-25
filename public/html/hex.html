@@ -1387,6 +1387,7 @@
         var flag=true;
         const time=20;
         var moveCount=0;
+        let sess_init = false;
 
         let isConnecting = true;
         async function AI_MOVE(index,moved){
@@ -1446,6 +1447,26 @@
                 $hexagon.css('fill', Def);
             });
             $('.hexagon-group').click(async function () {
+                if(AI_MODE && !sess_init){
+                    let intervalCheck;
+                    Swal.fire({
+                        title: "Loading...",
+                        text: "Waiting for AI MODEL to load..",
+                        icon: "info",
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        didOpen: () => {
+                           intervalCheck = setInterval(() => {
+                                if (sess_init) {
+                                    clearInterval(intervalCheck);
+                                    swal.close();
+                                }
+                            }, 1000);
+                        },
+                    });
+                }
                 if(HasWinner(matrix)){
                     let s= winner==="0"? "You":"Opponent";
                     console.log("Game already won by",s);
@@ -1608,7 +1629,7 @@
                     confirmButtonColor: "#DD6B55",
                     confirmButtonText: "Confirm",
                     cancelButtonText: "cancel",
-                }).then(async (result) => {
+                }).then((result) => {
                     if (result.isConfirmed) {
                         sendAcknowledgement();
                         if(AI_MODE){
@@ -1620,6 +1641,10 @@
                         location.href="/";
                     }
                 });
+                if(AI_MODE){
+                    sess_init = await load_model();
+                }
+                    
             }
 
             function endGame(name) {
@@ -1789,15 +1814,17 @@
             }
 
             function show_matchPopup() {
-                    let timerInterval;
+                let timerInterval;
+                let intervalCheck;
+
                 Swal.fire({
-                    title: starting? "You are playing as BLUE":"You are playing as RED", 
+                    title: starting ? "You are playing as BLUE" : "You are playing as RED",
                     html: "Match starts in <b>10</b> seconds",
                     customClass: {
-                        title: starting? 'color-blue':'color-red'
+                        title: starting ? 'color-blue' : 'color-red'
                     },
                     timer: 10000,
-                    showConfirmButton:false,
+                    showConfirmButton: false,
                     timerProgressBar: true,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
@@ -1806,10 +1833,10 @@
                         Swal.showLoading();
                         const timer = Swal.getPopup().querySelector("b");
                         timerInterval = setInterval(() => {
-                            timer.textContent = `${Math.ceil(Swal.getTimerLeft()/1000)}`;
+                            timer.textContent = `${Math.ceil(Swal.getTimerLeft() / 1000)}`;
                         }, 1000);
                     },
-                    willClose: () => {
+                    willClose: (popup) => {
                         clearInterval(timerInterval);
                     },
                     footer: `The Game will use &nbsp<a href="#" onclick="searchPieRule()"> Pie rule </a><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16">
@@ -1819,11 +1846,11 @@
                     
                 }).then((result) => {
                     /* Read more about handling dismissals below */
-                    if (result.dismiss === Swal.DismissReason.timer) {
-                        console.log("I was closed by the timer");
-                    }
+                    
+                    console.log("I was closed by the timer");
+                    start_game();
+                    
                 });
-                
             }
 
             function searchPieRule() {

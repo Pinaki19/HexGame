@@ -1,13 +1,11 @@
 const url = "./../public/11_2w4_2000.onnx";
-let sess_init = false;
 let info = "";
 let max_rating;
 const sess = new onnx.InferenceSession();
 
 async function load_model() {
     await sess.loadModel(url);
-    start_game();
-    sess_init = true;
+    return true;
 }
 
 function PosToId(x, y) {
@@ -219,10 +217,6 @@ async function runModel(cells,agent_is_blue) {
     return new Promise(async (resolve, reject) => {
         try {
             info = "waiting for agent to move...";
-            if (!sess_init) {
-                await load_model();
-            }
-
             let input_values = [];
             if (agent_is_blue) {
                 for (let x = -1; x < board_size + 1; x++) {
