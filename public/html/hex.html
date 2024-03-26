@@ -35,9 +35,25 @@
             height: 100vh;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            min-width:auto;
+        }
+        .color-square1 {
+            width: 20px; /* Adjust the size of the square as needed */
+            height: 20px; /* Adjust the size of the square as needed */
+            background-color: #3568ea ;
+            display: inline-block;
+            vertical-align: middle; /* Align the square vertically with the text */
+            margin-right: 5px; /* Adjust spacing between the square and the text */
         }
 
+        .color-square2{
+            width: 20px; /* Adjust the size of the square as needed */
+            height: 20px; /* Adjust the size of the square as needed */
+            background-color: #ea3535;
+            display: inline-block;
+            vertical-align: middle; /* Align the square vertically with the text */
+            margin-right: 5px; /* Adjust spacing between the square and the text */
+        }
         .color-red{
             color:#ea3535 !important;
         }
@@ -51,7 +67,7 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    flex-shrink: 1.5;
+    margin-top:7%;
 }
 
 @media (max-width: 768px) {
@@ -61,32 +77,100 @@
     }
 }
 
+    body{
+        background-color: #303030;
+        overflow-y: hidden;
+    }
 
-.navbar{
-    display:flex;
-    justify-content: space-around;
-    align-items: center;
-}
+
+    #youTimer,#opponentTimer{
+        padding-left: 20px;
+    }
+
+    #You,#Opponent{
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #Score_You,#Score_Opp{
+        background-color: rgb(62, 63, 63);
+        color: aliceblue;
+        height: max-content;
+        width: max-content;
+        padding: 15px;
+        padding-right: 40px;
+        border-radius: 10px;
+    }
+
+    #Score_You{
+        position: absolute;
+        
+        top:60%;
+        left:0;
+
+    }
+
+    #Score_Opp{
+        position: absolute;
+        bottom: 60%;
+        right:0;
+    }
+
     </style>
 
     </head>
 
 <body>
-    <nav class="navbar bg-light">
-        <div>
-            <p>You</p>
-            <div id="youTimer">30</div>
-        </div>
-        <h1>Welcome to Hex!</h1>
-        <div>
-            <p>Opponent</p>
-            <div id="opponentTimer">30</div>
+    <!-- Navbar-->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="color:white;height:10vh;background-color:rgb(59,59,59);">
+        <div class="container-fluid justify-content-between">
+            <!-- Left elements -->
+            <div class="d-flex" id="You">
+                <a class="nav-link d-sm-flex align-items-sm-center" href="#">
+                    <img src="/public/img/user.png" class="rounded-circle" height="22"
+                        alt="Black and White Portrait of a Man" loading="lazy" />
+                    <strong class="d-none d-sm-block ms-1">YOU</strong>
+                </a>
+                <div id="youTimer">30</div>
+            </div>
+    
+            <!-- Center elements -->
+            <div class="d-flex">
+                <h3>WELCOME TO HEX</h3>
+            </div>
+            <!-- Center elements -->
+    
+            <!-- Right elements -->
+            
+            <div class="d-flex" id="Opponent">
+                <a class="nav-link d-sm-flex align-items-sm-center" href="#">
+                    <img src="/public/img/user.png" class="rounded-circle" height="22"
+                        alt="Black and White Portrait of a Man" loading="lazy" />
+                    <strong class="d-none d-sm-block ms-1">OPPONENT</strong>
+                </a>
+                <div id="opponentTimer">30</div>
+                
+            </div>
+            <!-- Right elements -->
         </div>
     </nav>
+    <!-- Navbar -->
+    <div class="col-3 d-flex flex-column justify-content-center" id="Score_You">
+        <span>Color : <span id="Youcolor" class="color-square1"></span> </span>
+        <span>Moves played :<span id="YouNumMoves">0</span></span>
+        <span>Moves missed : <span id="YouMissedMoves">0</span></span>
+        <span>Win probability : <span id="YouWinPercent">50%</span></span>
+    </div>
+    <div class="col-3 d-flex flex-column justify-content-center" id="Score_Opp">
+        <span>Color : <span id="Oppocolor" class="color-square2"></span></span>
+        <span>Moves played :<span id="OppoNumMoves">0</span></span>
+        <span>Moves missed : <span id="OppoMissedMoves">0</span></span>
+        <span>Win probability : <span id="OppoWinPercent">50%</span></span>
+    </div>
     <div class="board">
-        <svg class="grid" width="800" height="600" viewBox="0 -3 25.75 30" version="1.1"
+        <svg class="grid" viewBox="-2.5 -3 28.75 30" version="1.1"
                 xmlns="http://www.w3.org/2000/svg">
-                <g>
+                <g style="transform:scale(0.91);">
                     <g class="hexagon-group" transform="translate(0, 0)" draggable="true">
                         <g class="hexagon">
                             <polygon
@@ -1478,8 +1562,11 @@
                 if (index < 0 || index > 120)
                     return;
                 if(AI_MODE){
+                    YouPlayed++;
                     opponent_move();
                     await AI_MOVE(index,true);
+                    OppoPlayed++;
+                    set_values();
                     you_move();
                     
                 }else{
@@ -1569,6 +1656,11 @@
             var interval;
 
             async function startYouTimer() {
+                document.getElementById('Opponent').style.backgroundColor='#3b3b3b';
+                if(starting)
+                    document.getElementById("You").style.backgroundColor='#069af3';
+                else
+                    document.getElementById("You").style.backgroundColor='#fb2943';
                 clearInterval(interval);
                 youTimer=time;
                 $('#youTimer').text(youTimer);
@@ -1580,8 +1672,11 @@
                         makeMove(-1, -1);
                         Swal.fire("You ran out of time!");
                         if(AI_MODE){
+                            YouMissed++;
                             opponent_move();
                             await AI_MOVE();
+                            OppoPlayed++;
+                            set_values();
                             you_move();
                         }
                     }
@@ -1589,6 +1684,11 @@
             }
 
             function startOpponentTimer() {
+                document.getElementById('You').style.backgroundColor='#3b3b3b';
+                if (!starting)
+                    document.getElementById("Opponent").style.backgroundColor='#069af3';
+                else
+                    document.getElementById("Opponent").style.backgroundColor='#fb2943';
                 clearInterval(interval);
                 opponentTimer=time;
                 $('#opponentTimer').text(opponentTimer);
@@ -1684,7 +1784,9 @@
             let session_id = getCookie("session_id");
             let hostname = window.location.hostname; // Get current hostname
             var port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-           
+            
+            var YouPlayed=0,YouMissed=0;
+            var OppoPlayed=0,OppoMissed=0;
            
             console.log(port);
             // Determine the WebSocket protocol based on the current page protocol
@@ -1700,26 +1802,44 @@
 
             socket.onmessage = async function (event) {
                 let data = JSON.parse(event.data);
+                console.log(data);
                 if(data.Type==1){
                     if (data.readyToStart) {
                         moveCount=0;
+                        YouMissed=0;
+                        YouPlayed=0;
+                        OppoMissed=0;
+                        OppoPlayed=0;
                         ongoing = true;
                         starting = data.turn;
                         flag = data.turn;
                         show_matchPopup(); 
+                        player_color();
                         
                     } else {
                         console.error("Error: Game cannot be started yet");
                     }
                 }else if(data.Type==2){
                     flag = data.turn;
-                    if (flag)
+                    if (flag){
                         you_move();
-                    else
-                        opponent_move();
+                        OppoMissed++;
+                    }
+                    else{
+                         opponent_move();
+                         YouMissed++;
+                    }
                 } else if (data.Type==3) {
                     moveCount++;
                     starting=data.starting;
+                    if(starting){
+                        OppoPlayed=0;
+                        YouPlayed=1;
+                    }else{
+                        YouPlayed=0;
+                        OppoPlayed=1;
+                    }
+                    player_color();
                     flag=data.turn;
                     Swal.fire({
                         title: "Switched!",
@@ -1745,15 +1865,26 @@
                     flag = data.turn;
                     set_color(PosToId(data.row,data.column),false);
                     moveCount++;
+                    
                     if(moveCount===1 && !starting){
+                        if (flag)
+                            OppoPlayed++;
+                        else
+                            YouPlayed++;
+                        set_values();
                         setTimeout(ask_for_switch,4000);
                     }else{
-                        if (flag)
+                        if (flag){
                             you_move();
-                        else
+                            OppoPlayed++;
+                        }
+                        else{
                             opponent_move();
+                            YouPlayed++;
+                        }
                     }
                 }
+                set_values();
                 if (HasWinner(matrix)) {
                     let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
                     console.log("Game already won by", s);
@@ -1772,7 +1903,25 @@
                 console.log("WebSocket connection closed");
             };
 
+            function player_color(){
+                if(starting){
+                    document.getElementById("Youcolor").className = "color-square1";
+                    document.getElementById("Oppocolor").className="color-square2";
+                }else{
+                    document.getElementById("Youcolor").className = "color-square2";
+                    document.getElementById("Oppocolor").className = "color-square1";
+                }
+            }
+
+            function set_values(){
+                document.getElementById("YouNumMoves").textContent=YouPlayed;
+                document.getElementById("YouMissedMoves").textContent=YouMissed;
+                document.getElementById("OppoNumMoves").textContent = OppoPlayed;
+                document.getElementById("OppoMissedMoves").textContent = OppoMissed;
+            }
+
             function ask_for_switch(){
+                
                 Swal.fire({
                     title: "Switch turns?",
                     text: "You can become the Blue player!",
@@ -1813,6 +1962,8 @@
                             you_move();
                         else
                             opponent_move();
+                        
+                            
                     }
                 });
             }

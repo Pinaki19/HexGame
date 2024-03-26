@@ -75,6 +75,9 @@ async def new_game(
     if game_id not in game_mapping:
         raise HTTPException(
             status_code=400, detail="Game with specified Id does not exist")
+    session_id = request.cookies.get("session_id")
+    if session_id in cur_games and cur_games[session_id]==game_id:
+        return RedirectResponse('/')
     response = templates.TemplateResponse(
         "hex.html", {"request": request, "AI_MODE": AI_MODE})
     id = game_mapping[game_id][0]
@@ -156,8 +159,9 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
     except WebSocketDisconnect:
         # WebSocket connection closed
         try:
+            turn_details.pop(session_id,None)
+            turn_counts.pop(game_id,None)
             other= 1 if game_mapping[game_id][0]==session_id else 0
-            print("Other:",other)
             other_session=game_mapping[game_id][other]
             if game_id in connections and other_session in connections[game_id]:
                 socket=connections[game_id][other_session]
@@ -167,7 +171,6 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
                 await socket.send_text(message)
                 connections.pop(game_id,None)
                 game_mapping.pop(game_id)
-                print("Game:",game_mapping)
         except Exception as e:
             print(f"WebSocket connection closed with exception: {e} 1")
         # Perform cleanup or other actions as needed
@@ -260,6 +263,7 @@ async def make_move(request: Request, data:Move):
 async def switch_player(request:Request):
     game_id = request.cookies.get("game_id")
     session_id = request.cookies.get("session_id")
+    print(turn_details,turn_counts)
     s1,s2=game_mapping[game_id]
     if s1!=session_id:
         s1,s2=s2,s1

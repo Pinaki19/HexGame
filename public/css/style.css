@@ -2598,14 +2598,16 @@ ul {
 @media (max-width: 991px) {
   /* line 8, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_banner.scss */
   .banner_part .banner_text {
-    height: 650px;
+    height: auto;
+    min-height: 350px;
   }
 }
 
 @media only screen and (min-width: 992px) and (max-width: 1200px) {
   /* line 8, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_banner.scss */
   .banner_part .banner_text {
-    height: 650px;
+    height: auto;
+    min-height: 350px;
   }
 }
 
@@ -4160,21 +4162,21 @@ ul {
 @media (max-width: 576px) {
   /* line 3, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_footer.scss */
   .footer_part .footer_top {
-    padding: 70px 0;
+    padding: 0;
   }
 }
 
 @media (max-width: 991px) {
   /* line 3, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_footer.scss */
   .footer_part .footer_top {
-    padding: 70px 0;
+    padding: 0;
   }
 }
 
 @media only screen and (min-width: 992px) and (max-width: 1200px) {
   /* line 3, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_footer.scss */
   .footer_part .footer_top {
-    padding: 100px 0;
+    padding: 0;
   }
 }
 
@@ -6235,27 +6237,27 @@ h1, h2, h3, h4, h5, h6 {
 /**********************footer part css*******************/
 /* line 3, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_footer.scss */
 .footer_part .footer_top {
-  padding: 140px 0 100px;
+  padding: 0;
 }
 
 @media (max-width: 576px) {
   /* line 3, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_footer.scss */
   .footer_part .footer_top {
-    padding: 70px 0;
+    padding: 0;
   }
 }
 
 @media (max-width: 991px) {
   /* line 3, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_footer.scss */
   .footer_part .footer_top {
-    padding: 70px 0;
+    padding: 0;
   }
 }
 
 @media only screen and (min-width: 992px) and (max-width: 1200px) {
   /* line 3, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_footer.scss */
   .footer_part .footer_top {
-    padding: 100px 0;
+    padding: 0;
   }
 }
 
