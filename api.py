@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import Union, Dict, List, Set, Optional
 
 import string
-
+underway=False
 
 class Move(BaseModel):
     row:int
@@ -62,6 +62,7 @@ async def welcome_user(request: Request, user: str = "user"):
         session_id = str(uuid.uuid4())
     response = FileResponse("public/html/index.html")
     response.set_cookie(key="session_id", value=session_id)
+    asyncio.create_task(clear_dicts())
     return response
 
 
@@ -271,23 +272,19 @@ async def switch_player(request:Request):
         await sock2.send_text(message2)
     return {"message": "swith request processed"}
 
-@app.get('/clear-all')
-async def my_task():
-    print("started")
-    while True:
-        l1=game_mapping.keys()
-        l2=connections.keys()
-        l3=game_coroutines.keys()
-        l4=cur_games.keys()
-        await asyncio.sleep(10)  # 30 minutes in seconds
-        for mem in l1:
-            game_mapping.pop(l1,None)
-        for mem in l2:
-            connections.pop(mem,None)
-        for mem in l3:
-            game_coroutines.pop(mem,None)
-        for mem in l4:
-            cur_games.pop(mem,None)
+
+async def clear_dicts():
+    global underway  
+    if underway:
+        return
+    print("Cleaning started")
+    underway = True
+    await asyncio.sleep(30*60)  # 30 minutes in seconds
+    for d in [game_mapping, connections, game_coroutines, cur_games]:
+        d.clear()
+
+    print("Dictionaries cleaned")
+    underway = False
 
 if __name__ == "__main__":
     uvicorn.run(app,port=9000)
