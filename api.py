@@ -2,7 +2,7 @@ from asyncio import Future
 import asyncio
 import json
 import random
-from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi import FastAPI, Request, WebSocket, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
@@ -51,6 +51,11 @@ turn_counts={}
 turn_details={}
 
 
+@app.exception_handler(404)
+async def not_found_exception_handler(request: Request, exc: HTTPException):
+    return error(request,exc.status_code, "Oops! This route does not exist.")
+
+
 @app.get("/")
 async def welcome_user(request: Request, user: str = "user"):
     print(game_mapping)
@@ -65,6 +70,15 @@ async def welcome_user(request: Request, user: str = "user"):
     asyncio.create_task(clear_dicts())
     return response
 
+def error(request:Request,Code:int,Info:str):
+    response = templates.TemplateResponse(
+        "error.html", {"request": request,"Code":Code,"Detail": Info})
+    return response
+
+
+@app.get('/favicon.ico')
+async def get_icon():
+    return FileResponse('public/img/favicon.png')
 
 @app.get("/new-game/{game_id}")
 async def new_game(
@@ -73,8 +87,7 @@ async def new_game(
     AI_MODE: Optional[bool] = Query(None)
 ):
     if game_id not in game_mapping:
-        raise HTTPException(
-            status_code=400, detail="Game with specified Id does not exist")
+        return error(request, 404, "Game with specified Id does not exist")
     session_id = request.cookies.get("session_id")
     if session_id in cur_games and cur_games[session_id]==game_id:
         return RedirectResponse('/')
@@ -105,10 +118,9 @@ async def create_game(request: Request) -> Dict[str, str]:
 
 
 @app.get('/start-game/{game_id}')
-async def start(game_id: str):
+async def start(request:Request,game_id: str):
     if game_id not in game_mapping:
-        raise HTTPException(
-            status_code=400, detail="Game with specified Id does not exist")
+        return error(request,400, "Game with specified Id does not exist")
     if game_id in game_coroutines:
         # Await the game coroutine
         await game_coroutines[game_id]
@@ -116,7 +128,7 @@ async def start(game_id: str):
         return {'start': True}
     else:
         print("no")
-        raise HTTPException(status_code=404, detail="Game not found")
+        return error(request, 404, "Game not found")
 
     
 
@@ -126,12 +138,10 @@ async def join_game(game_id: str,request: Request) -> str:
     Join the game with the provided game ID using the given session ID.
     """
     if game_id not in game_mapping:
-        raise HTTPException(
-            status_code=400, detail="Game with specified Id does not exist")
+        return error(request, 400, "Game with specified Id does not exist")
     id2=game_mapping[game_id][1]
     if id2 in cur_games and cur_games[id2]==game_id:
-        raise HTTPException(
-            status_code=400, detail="Game already has two players")
+        return error(request, 400, "Game already has two players")
     response = templates.TemplateResponse(
         "hex.html", {"request": request, "AI_MODE":False})
     response.set_cookie(key="session_id", value=id2)
@@ -228,14 +238,12 @@ async def make_move(request: Request, data:Move):
         if session_id not in connections[game_id]:
             return {"message": "waiting for other player"}
     if not game_id or not session_id:
-        raise HTTPException(
-            status_code=400, detail="Game ID or session ID not found in cookies")
+        return error(request, 400, "Game ID or session ID not found in cookies")
 
     # Retrieve player number based on session_id
     
     if player_number is None:
-        raise HTTPException(
-            status_code=400, detail="Player number not found for session ID")
+        return error(request, 400, "Player number not found for session ID")
 
     flag=False
     if (row < 0 or column < 0):

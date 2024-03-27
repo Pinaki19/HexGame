@@ -1552,6 +1552,7 @@
                         },
                     });
                 }
+                
                 if(HasWinner(matrix)){
                     let s= winner==="0"? "You":"Opponent";
                     console.log("Game already won by",s);
@@ -1575,6 +1576,11 @@
                     
                     await makeMove(row,col);
                 }
+                const  winningProbability  = calculateWinningProbability(matrix, "1");
+                console.log("Winning probability for player red:", winningProbability);
+
+                const  winningProbability2  = calculateWinningProbability(matrix, "0");
+                console.log("Winning probability for player blue:", winningProbability2);
             });
             });
 
@@ -1886,6 +1892,12 @@
                     }
                 }
                 set_values();
+                const winningProbability = calculateWinningProbability(matrix, "1");
+                console.log("Winning probability for player red:", winningProbability);
+
+                const winningProbability2 = calculateWinningProbability(matrix, "0");
+                console.log("Winning probability for player blue:", winningProbability2);
+                
                 if (HasWinner(matrix)) {
                     let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
                     console.log("Game already won by", s);
@@ -2069,6 +2081,75 @@
                 }
             });
         }
+
+        
+
+        function calculateWinningProbability(board, player) {
+                const N = 11; // Board size
+
+                // Function to check if there is a path from one side to the other for the player
+                function isWinner() {
+                    if (HasWinner(board) && winner === player)
+                        return true;
+                    return false;
+                }
+
+                // Calculate influence for each cell based on distance from edges, connectivity, and centrality
+                const influence = new Array(N * N).fill(0);
+                for (let i = 0; i < N * N; i++) {
+                    if (board[i] === player) {
+                        const [row, col] = IdToPos(i);
+                        const distanceToEdge = Math.min(row, N - 1 - row, col, N - 1 - col);
+
+                        // Weighted influence factors
+                        const edgeWeight = 1 / (distanceToEdge + 1); // Higher weight for cells closer to edges
+                        const connectivityWeight = calculateConnectivity(board, player, row, col); // Connectivity weight
+                        const centralityWeight = calculateCentrality(row, col, N); // Centrality weight
+
+                        // Combined influence
+                        influence[i] += edgeWeight + connectivityWeight + centralityWeight;
+                    }
+                }
+
+                // Calculate total influence for the player
+                const totalInfluence = influence.reduce((sum, value) => sum + value, 0);
+
+                // Estimate winning probability based on total influence
+                const winningProbability = totalInfluence / (N * N);
+                return winningProbability;
+            }
+
+            // Function to calculate connectivity weight for a cell
+            function calculateConnectivity(board, player, row, col) {
+                const N = 11; // Board size
+                let connectivityWeight = 0;
+
+                const neighbors = [[1, -1], [1, 0], [0, -1], [0, 1], [-1, 0], [-1, 1]];
+                for (const [dr, dc] of neighbors) {
+                    const newRow = row + dr;
+                    const newCol = col + dc;
+                    if (newRow >= 0 && newRow < N && newCol >= 0 && newCol < N && board[PosToId(newRow, newCol)] === null) {
+                        connectivityWeight += 0.5; // Increase connectivity weight for empty neighboring cells
+                    }
+                }
+                return connectivityWeight;
+            }
+
+            // Function to calculate centrality weight for a cell
+            function calculateCentrality(row, col, N) {
+                // Calculate distance from center of the board
+                const centerX = (N - 1) / 2;
+                const centerY = (N - 1) / 2;
+                const distanceToCenter = Math.sqrt((row - centerY) ** 2 + (col - centerX) ** 2);
+
+                // Normalize distance to center to a value between 0 and 1
+                const normalizedDistance = 1 - (distanceToCenter / Math.max(N / 2, N / 2));
+
+                // Weight centrality based on normalized distance
+                return normalizedDistance;
+            }
+
+
     </script>
 </body>
 </html>
