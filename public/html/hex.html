@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hex Game Board</title>
+    <title>Game Board</title>
     {% if AI_MODE %}
     <script>
         var AI_MODE = true;
@@ -167,6 +167,7 @@
         <span>Moves missed : <span id="OppoMissedMoves">0</span></span>
         <span>Win probability : <span id="OppoWinPercent">50%</span></span>
     </div>
+    <button type="button" style="position:absolute;bottom:5%;right:1%;padding:15px;" class="btn btn-danger" onclick="Surrender()">Surrender</button>
     <div class="board">
         <svg class="grid" viewBox="-2.5 -3 28.75 30" version="1.1"
                 xmlns="http://www.w3.org/2000/svg">
@@ -2050,7 +2051,24 @@
                     e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
                     window.location.href = '/';
                 });
-        
+        function Surrender(){
+            Swal.fire({
+                title: "You are about to surrender",
+                timer: 10000,
+                confirmButtonText:"Surrender",
+                showCancelButton:true,
+                cancelButtonText:"Cancel",
+                timerProgressBar: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                icon:"warning"
+            }).then((result) => {
+                if(result.isConfirmed){
+                    location.href='/';    
+                }
+            });
+        }
     </script>
 </body>
 </html>
