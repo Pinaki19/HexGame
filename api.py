@@ -165,7 +165,10 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
             if data == '{"action":"acknowledge"}':
                 cur_games[session_id] = game_id
                 await handle_acknowledgment(game_id)
-            
+            if data == '{"action":"END"}':
+                connections.pop(game_id,None)
+                game_mapping.pop(game_id,None)
+                break
     except WebSocketDisconnect:
         # WebSocket connection closed
         try:

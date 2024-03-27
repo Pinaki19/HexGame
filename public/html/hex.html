@@ -1758,6 +1758,9 @@
             }
 
             function endGame(name) {
+                if(socket.readyState === WebSocket.OPEN){
+                    socket.send(JSON.stringify({ action: "END" }));
+                }
                 ongoing=false;
                 let timerInterval;
                 Swal.fire({
