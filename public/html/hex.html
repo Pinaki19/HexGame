@@ -1576,11 +1576,7 @@
                     
                     await makeMove(row,col);
                 }
-                const  winningProbability  = calculateWinningProbability(matrix, "1");
-                console.log("Winning probability for player red:", winningProbability);
-
-                const  winningProbability2  = calculateWinningProbability(matrix, "0");
-                console.log("Winning probability for player blue:", winningProbability2);
+                
             });
             });
 
@@ -1895,11 +1891,7 @@
                     }
                 }
                 set_values();
-                const winningProbability = calculateWinningProbability(matrix, "1");
-                console.log("Winning probability for player red:", winningProbability);
-
-                const winningProbability2 = calculateWinningProbability(matrix, "0");
-                console.log("Winning probability for player blue:", winningProbability2);
+                
                 
                 if (HasWinner(matrix)) {
                     let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
