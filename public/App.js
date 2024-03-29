@@ -1,4 +1,4 @@
-const url = "./../public/11_2w4_2000.onnx";
+const url = "https://hex-b5w.pages.dev/11_2w4_2000.onnx";
 let info = "";
 let max_rating;
 const sess = new onnx.InferenceSession();
