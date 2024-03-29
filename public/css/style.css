@@ -475,6 +475,7 @@ ul {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  overflow-x: hidden;
 }
 
 /* line 251, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_common.scss */
@@ -566,7 +567,6 @@ ul {
   /* line 24, ../../01 cl html template/03_jun 2019/186_Gaiming_html/sass/_button.scss */
   .btn_1 {
     padding: 10px 30px;
-    margin-top: 20px;
   }
 }
 

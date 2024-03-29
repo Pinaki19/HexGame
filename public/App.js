@@ -91,7 +91,7 @@ function minimax(board, depth, current_player, first_player) {
     if (depth === 0) {
         return [0, null]; // no one won
     }
-    if (current_player === "1") { // red, maximizing
+    if (current_player === "0") { // red, maximizing
         let value = -10;
         let best = null;
         for (let i = 0; i < board_size * board_size; i++) {
@@ -161,9 +161,9 @@ function AddBorder(x, y, input_values, border_color) {
 function findSureWinMove(board, player) {
     for (let depth of [1, 3]) {
         const a = minimax(board, depth, player, player);
-        if (player === '1') {
+        if (player === '0') {
             if (a[0] > 0) {
-                return a[0];
+                return a[1];
             }
         } else {
             if (a[0] < 0) {
@@ -179,6 +179,7 @@ async function handle_click(matrix, player, agent, ai_board,agent_is_blue){
     return new Promise((resolve, reject) => {
         const sure_win_move = findSureWinMove(ai_board, agent);
         if (sure_win_move !== null) {
+            console.log("Agent can surely win with the suggested move", sure_win_move);
             matrix[sure_win_move] = agent;
             set_color(sure_win_move, true,false);
             resolve(sure_win_move);
@@ -205,7 +206,7 @@ async function handle_click(matrix, player, agent, ai_board,agent_is_blue){
             test_board[best] = agent;
             const sure_win = findSureWinMove(test_board, player);
             if (sure_win !== null) {
-                console.log("Player can surely win with the suggested move", best, "Moving to the sure win move instead.");
+                console.log("Player can surely win with the suggested move",sure_win, "Blocking the player");
                 best = sure_win;
             }
             resolve(best);

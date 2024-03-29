@@ -70,16 +70,25 @@
     margin-top:7%;
 }
 
+#Surrender{
+    position:absolute;
+    bottom:5%;
+    right:1%;
+    padding:15px;
+}
+
 @media (max-width: 768px) {
     .board {
         height: auto; /* or any other value suitable for mobile devices */
         width: auto;
+       
     }
 }
 
     body{
         background-color: #303030;
         overflow-y: hidden;
+        
     }
 
 
@@ -104,7 +113,6 @@
 
     #Score_You{
         position: absolute;
-        
         top:60%;
         left:0;
 
@@ -116,11 +124,78 @@
         right:0;
     }
 
+    @media only screen and (max-width: 700px) {
+        #Welcome{
+            font-size: medium;
+        }
+
+        #Score_You,#Score_Opp{
+            padding: 10px;
+            padding-right: 30px;
+            border-radius: 8px;
+        }
+        #Score_You {
+            position: absolute;
+            bottom: 20px;
+            top: unset;
+            left: 2%;
+        }
+
+         #Score_Opp{
+            position: absolute;
+            bottom: 20px;
+            right:2%;
+        }
+
+
+
+       
+        #Surrender{
+            position:absolute;
+            top:10%;
+            bottom: unset;
+            right:5%;
+            padding:15px;
+        }
+
+    }
+    @media only screen and (max-width: 400px) {
+        #Welcome{
+            font-size: small;
+        }
+        #Score_You,#Score_Opp{
+            padding: 5px;
+            padding-right: 15px;
+            border-radius: 5px;
+        }
+        #Score_You {
+            position: absolute;
+            bottom: 20px;
+            top: unset;
+            left: 2%;
+        }
+
+         #Score_Opp{
+            position: absolute;
+            bottom: 20px;
+            right:2%;
+        }
+       
+        #Surrender{
+            position:absolute;
+            top:10%;
+            bottom: unset;
+            right:5%;
+            padding:15px;
+        }
+
+    }
+
     </style>
 
     </head>
 
-<body>
+<body >
     <!-- Navbar-->
     <nav class="navbar navbar-expand-lg navbar-dark" style="color:white;height:10vh;background-color:rgb(59,59,59);">
         <div class="container-fluid justify-content-between">
@@ -136,7 +211,7 @@
     
             <!-- Center elements -->
             <div class="d-flex">
-                <h3>WELCOME TO HEX</h3>
+                <h3 id="Welcome">WELCOME TO HEX</h3>
             </div>
             <!-- Center elements -->
     
@@ -159,15 +234,15 @@
         <span>Color : <span id="Youcolor" class="color-square1"></span> </span>
         <span>Moves played :<span id="YouNumMoves">0</span></span>
         <span>Moves missed : <span id="YouMissedMoves">0</span></span>
-        <span>Win probability : <span id="YouWinPercent">50%</span></span>
+        <!-- <span>Win probability : <span id="YouWinPercent">50%</span></span> -->
     </div>
     <div class="col-3 d-flex flex-column justify-content-center" id="Score_Opp">
         <span>Color : <span id="Oppocolor" class="color-square2"></span></span>
         <span>Moves played :<span id="OppoNumMoves">0</span></span>
         <span>Moves missed : <span id="OppoMissedMoves">0</span></span>
-        <span>Win probability : <span id="OppoWinPercent">50%</span></span>
+        <!-- <span>Win probability : <span id="OppoWinPercent">50%</span></span> -->
     </div>
-    <button type="button" style="position:absolute;bottom:5%;right:1%;padding:15px;" class="btn btn-danger" onclick="Surrender()">Surrender</button>
+    <button type="button" id="Surrender" class="btn btn-danger" onclick="Surrender()">Surrender</button>
     <div class="board">
         <svg class="grid" viewBox="-2.5 -3 28.75 30" version="1.1"
                 xmlns="http://www.w3.org/2000/svg">
@@ -1466,7 +1541,7 @@
         const Red= '#ea3535';
         const Def='white';
         var matrix = Array(board_size * board_size).fill(null);
-        const agent_is_blue=true;
+        var agent_is_blue=true;
         var winner=null;
         var starting=true;
         var flag=true;
@@ -1475,32 +1550,39 @@
         let sess_init = false;
 
         let isConnecting = true;
-        async function AI_MOVE(index,moved){
-           const player = agent_is_blue ? "0" : "1";
-            const agent = agent_is_blue ? "1" : "0";
-            let ai_board = Array.from(matrix);
-            if(moved){
-                let id = index;
-                set_color(index, false, true);
-                matrix[id] = player;
-                ai_board[id]=player;
-            }
-            handle_click(matrix, player, agent, ai_board, agent_is_blue).then(best => {
-                set_color(best, true, false);
-                matrix[best] = agent;
-                if (HasWinner(matrix)) {
-                    console.log(winner);
-                    let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
-                    console.log("Game already won by", s);
-                    endGame(s);
-                    return;
+        async function AI_MOVE(index, moved) {
+                const player = agent_is_blue ? "0" : "1";
+                const agent = agent_is_blue ? "1" : "0";
+                let ai_board = Array.from(matrix);
+                if (moved) {
+                    let id = index;
+                    set_color(index, false, true);
+                    matrix[id] = player;
+                    ai_board[id] = player;
                 }
 
-            })
-                .catch(error => {
-                    console.error('Error occurred:', error);
-                }); 
-        }
+                // Introduce a random delay between 0 and 4 seconds
+                const delay = Math.floor(Math.random() * 4000);
+
+                // Sleep for the random delay
+                await new Promise(resolve => setTimeout(resolve, delay));
+
+                handle_click(matrix, player, agent, ai_board, agent_is_blue).then(best => {
+                    set_color(best, true, false);
+                    matrix[best] = agent;
+                    if (HasWinner(matrix)) {
+                        console.log(winner);
+                        let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
+                        console.log("Game already won by", s);
+                        endGame(s);
+                        return;
+                    }
+                })
+                    .catch(error => {
+                        console.error('Error occurred:', error);
+                    });
+            }
+
         $(document).ready(function () {
              $('.hexagon-group').mouseenter(function () {
                 if(!ongoing)
@@ -1553,18 +1635,14 @@
                     });
                 }
                 
-                if(HasWinner(matrix)){
-                    let s= winner==="0"? "You":"Opponent";
-                    console.log("Game already won by",s);
-                    return;
-                }
-                if(!flag || $(this).data('used')||moveCount==1 && !AI_MODE|| !ongoing)
+                if(!flag || $(this).data('used')||moveCount==1 && !AI_MODE && (YouMissed+OppoMissed)==0|| !ongoing)
                     return;
                 var index = $('.hexagon-group').index(this);
                 if (index < 0 || index > 120)
                     return;
                 if(AI_MODE){
                     YouPlayed++;
+                    set_values();
                     opponent_move();
                     await AI_MOVE(index,true);
                     OppoPlayed++;
@@ -1603,7 +1681,7 @@
                     })
                     .then(data => {
                         // Optionally handle the response data here
-                        console.log('Server response:', data);
+                        //console.log('Server response:', data);
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -1617,7 +1695,10 @@
                     var hexagonGroup = $('.hexagon-group').eq(index);
                     hexagonGroup.data('used', true);
                     var hexagon = hexagonGroup.find('.hexagon polygon'); 
-                    hexagon.css('fill', Red);
+                    if(agent_is_blue)
+                        hexagon.css('fill', Red);
+                    else
+                        hexagon.css('fill', Blue);
                     return;
                 }
                 var hexagonGroup = $('.hexagon-group').eq(index);
@@ -1625,11 +1706,21 @@
                 var hexagon = hexagonGroup.find('.hexagon polygon'); // Find the child hexagon
                 if(AI_MODE){
                     if(player){
-                       hexagon.css('fill', Blue);
-                        matrix[index] = "0"; 
+                        if(agent_is_blue){
+                            hexagon.css('fill', Blue);
+                            matrix[index] = "0"; 
+                        }else{
+                            hexagon.css('fill', Red);
+                            matrix[index] = "1";
+                        }
                     }else{
-                        hexagon.css('fill', Red);
-                        matrix[index] = "1";
+                        if (!agent_is_blue) {
+                            hexagon.css('fill', Blue);
+                            matrix[index] = "0";
+                        } else {
+                            hexagon.css('fill', Red);
+                            matrix[index] = "1";
+                        }
                     }
                     return;
                 }
@@ -1676,6 +1767,7 @@
                         Swal.fire("You ran out of time!");
                         if(AI_MODE){
                             YouMissed++;
+                            set_values();
                             opponent_move();
                             await AI_MOVE();
                             OppoPlayed++;
@@ -1712,7 +1804,7 @@
                 flag=false;
                 startOpponentTimer();
             }
-            function start_game(){
+            async function start_game(){
                 $('#opponentTimer').text(time);
                 $('#youTimer').text(time);
                 var youTimer = time;
@@ -1720,8 +1812,16 @@
                 var interval;
                 if (flag) {
                     startYouTimer();
-                }else
+                }else{
                     startOpponentTimer();
+                    if(AI_MODE && !agent_is_blue){
+                        await AI_MOVE();
+                        OppoPlayed++;
+                        set_values();
+                        setTimeout(ask_for_switch, 4000);
+                    }
+                }
+                    
             }
             async function show(){
                 swal.fire({
@@ -1739,8 +1839,16 @@
                     if (result.isConfirmed) {
                         sendAcknowledgement();
                         if(AI_MODE){
-                            starting = true;
-                            flag = true;
+                            const random_number = Math.floor(Math.random() * 2);
+                            if (random_number === 0) {
+                                agent_is_blue=true;
+                                starting = true;
+                                flag = true;
+                            } else {
+                                agent_is_blue=false;
+                                starting = false;
+                                flag = false;
+                            }
                             show_matchPopup();
                         }
                     } else {
@@ -1793,8 +1901,7 @@
             
             var YouPlayed=0,YouMissed=0;
             var OppoPlayed=0,OppoMissed=0;
-           
-            console.log(port);
+   
             // Determine the WebSocket protocol based on the current page protocol
             let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             
@@ -1808,7 +1915,7 @@
 
             socket.onmessage = async function (event) {
                 let data = JSON.parse(event.data);
-                console.log(data);
+                //console.log(data);
                 if(data.Type==1){
                     if (data.readyToStart) {
                         moveCount=0;
@@ -1872,7 +1979,7 @@
                     set_color(PosToId(data.row,data.column),false);
                     moveCount++;
                     
-                    if(moveCount===1 && !starting){
+                    if(moveCount===1 && !starting && YouMissed==0 && OppoMissed==0){
                         if (flag)
                             OppoPlayed++;
                         else
@@ -1942,8 +2049,36 @@
                     cancelButtonColor: "#d33",
                     confirmButtonText: "Switch!",
                     cancelButtonText:"Cancel",
-                }).then((result) => {
+                    timer:10000,
+                }).then(async (result) => {
                     if (result.isConfirmed) {
+                        if(AI_MODE){
+                            starting = true;
+                            flag = false;
+                            agent_is_blue = true;
+                            player_color();
+                            YouPlayed = 1;
+                            OppoPlayed = 0;
+                            set_values();
+                            Swal.fire({
+                                title: "Switched!",
+                                text: starting ? "You are now playing as BLUE player" : "You are now playing as RED player, make your move",
+                                icon: "info",
+                                showConfirmButton: false,
+                                timer: 4000,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                allowEnterKey: false
+                            }).then(async (result) => {
+                                opponent_move();
+                                await AI_MOVE();
+                                OppoPlayed++;
+                                set_values();
+                                you_move();
+                                return; 
+                            });
+                            return;
+                        }
                         fetch('/swith_player', {
                             method: 'GET',
                             headers: {
@@ -1965,28 +2100,31 @@
                             console.error('Error:', error);
                         });
                     }else{
+                        if(AI_MODE){
+                            you_move();
+                            return;
+                        }
                         moveCount++;
                         if (flag)
                             you_move();
                         else
                             opponent_move();
-                        
-                            
                     }
                 });
             }
 
             function show_matchPopup() {
+                player_color();
                 let timerInterval;
                 let intervalCheck;
 
                 Swal.fire({
                     title: starting ? "You are playing as BLUE" : "You are playing as RED",
-                    html: "Match starts in <b>10</b> seconds",
+                    html: "Match starts in <b>3</b> seconds",
                     customClass: {
                         title: starting ? 'color-blue' : 'color-red'
                     },
-                    timer: 10000,
+                    timer: 3000,
                     showConfirmButton: false,
                     timerProgressBar: true,
                     allowOutsideClick: false,
@@ -2010,7 +2148,7 @@
                 }).then((result) => {
                     /* Read more about handling dismissals below */
                     
-                    console.log("I was closed by the timer");
+                    //console.log("I was closed by the timer");
                     start_game();
                     
                 });
