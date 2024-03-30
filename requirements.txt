@@ -4,3 +4,4 @@ uvicorn
 jinja2
 gunicorn
 uvicorn[standard]
+requests
