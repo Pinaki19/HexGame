@@ -299,11 +299,6 @@ async def clear_dicts():
     for d in [game_mapping, connections, game_coroutines, cur_games,turn_counts,turn_details]:
         d.clear()
     print("Dictionaries cleaned")
-    response = requests.get("https://hex-health-check.vercel.app/")
-    if response.status_code == 200:
-        print("Health check successful:", response.text)
-    else:
-        print("Health check failed:", response.text)
     underway = False
 
 @app.get("/health_check")
