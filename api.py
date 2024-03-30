@@ -294,7 +294,7 @@ async def clear_dicts():
         return
     print("Cleaning started")
     underway = True
-    await asyncio.sleep(30*60)  # 30 minutes in seconds
+    await asyncio.sleep(15*60)  # 15 minutes in seconds
     for d in [game_mapping, connections, game_coroutines, cur_games,turn_counts,turn_details]:
         d.clear()
 
