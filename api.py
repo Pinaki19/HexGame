@@ -301,5 +301,9 @@ async def clear_dicts():
     print("Dictionaries cleaned")
     underway = False
 
+@app.get("/health_check")
+def health_path():
+    return {"Status": "OK"}
+
 if __name__ == "__main__":
     uvicorn.run(app,port=9000)
