@@ -1,4 +1,3 @@
-from asyncio import Future
 import asyncio
 import json
 import random
@@ -112,8 +111,7 @@ async def create_game(request: Request) -> Dict[str, str]:
     session_id2 = str(uuid.uuid4())  # Generate session ID for player 2
     # Store the mapping between game ID and session IDs
     game_mapping[game_id] = [session_id1,session_id2]
-    future = Future()
-    game_coroutines[game_id] = future
+    game_coroutines[game_id] = asyncio.Event()
     return {"id":game_id}
 
 
@@ -123,7 +121,8 @@ async def start(request:Request,game_id: str):
         return error(request,400, "Game with specified Id does not exist")
     if game_id in game_coroutines:
         # Await the game coroutine
-        await game_coroutines[game_id]
+        event=game_coroutines[game_id]
+        await event.wait()
         print("resolved")
         return {'start': True}
     else:
@@ -153,7 +152,8 @@ async def join_game(game_id: str,request: Request) -> str:
 async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str):
     await websocket.accept()
     if session_id == game_mapping[game_id][1]:
-        game_coroutines[game_id].set_result(None)
+        event = game_coroutines[game_id]
+        event.set()
     if game_id not in connections:
         connections[game_id] = {}
     connections[game_id][session_id] = websocket
