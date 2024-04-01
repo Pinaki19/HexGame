@@ -1864,6 +1864,10 @@
 
             function endGame(name) {
                 if(socket.readyState === WebSocket.OPEN){
+                    if(AI_MODE){
+                        var text= name==="You"? "AI LOST":"AI WON";
+                        socket.send(JSON.stringify({ winner: text }));
+                    }
                     socket.send(JSON.stringify({ action: "END" }));
                 }
                 ongoing=false;
@@ -1887,7 +1891,7 @@
                     backdrop: name==="You"? `
                         rgba(108, 122, 137,0.4)
                         url("/public/img/win.gif")
-                        center bottom
+                        center
                         no-repeat
                     `:""
                 }).then((result) => {
