@@ -1570,6 +1570,8 @@
                 handle_click(matrix, player, agent, ai_board, agent_is_blue).then(best => {
                     set_color(best, true, false);
                     matrix[best] = agent;
+                    updateTurn(moveCount, `AI played: ${best}`);
+                    moveCount++;
                     if (HasWinner(matrix)) {
                         console.log(winner);
                         let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
@@ -1615,6 +1617,7 @@
             });
             $('.hexagon-group').click(async function () {
                 if(AI_MODE && !sess_init){
+                    you_move();
                     let intervalCheck;
                     Swal.fire({
                         title: "Loading...",
@@ -1629,6 +1632,8 @@
                                 if (sess_init) {
                                     clearInterval(intervalCheck);
                                     swal.close();
+                                }else{
+                                    you_move();
                                 }
                             }, 1000);
                         },
@@ -1642,7 +1647,10 @@
                 if (index < 0 || index > 120)
                     return;
                 if(AI_MODE){
+                    
                     YouPlayed++;
+                    updateTurn(moveCount,`You played: ${index}`);
+                    moveCount++;
                     set_values();
                     opponent_move();
                     await AI_MOVE(index,true);
@@ -1658,6 +1666,21 @@
                 
             });
             });
+
+            let turnMap = new Map();
+
+            // Function to update turn information
+            function updateTurn(turnCount, turnInfo) {
+                turnMap.set(turnCount, turnInfo);
+            }
+            
+            let varMap1=new Map();
+            let varMap2=new Map();
+            function initMap(M){
+                M.set("starting",starting);
+                M.set("agent_blue",agent_is_blue);
+            }
+            
 
             async function makeMove(row, col) {
                 if(AI_MODE)
@@ -1868,6 +1891,12 @@
                         var text= name==="You"? "AI LOST":"AI WON";
                         socket.send(JSON.stringify({ winner: text }));
                     }
+                    if(HasWinner(matrix)){
+                        const turnData = JSON.stringify(Array.from(turnMap.entries()));
+                        socket.send(turnData);
+                        const matrixData = JSON.stringify(matrix);
+                        socket.send(matrixData);
+                    }
                     socket.send(JSON.stringify({ action: "END" }));
                 }
                 ongoing=false;
@@ -2041,7 +2070,7 @@
             }
 
             function ask_for_switch(){
-                
+                initMap(varMap1);
                 Swal.fire({
                     title: "Switch turns?",
                     text: "You can become the Blue player!",
@@ -2057,6 +2086,7 @@
                     timer:10000,
                 }).then(async (result) => {
                     if (result.isConfirmed) {
+                        turnMap.set("switch",true);
                         if(AI_MODE){
                             starting = true;
                             flag = false;
@@ -2105,6 +2135,7 @@
                             console.error('Error:', error);
                         });
                     }else{
+                        turnMap.set("swith", false);
                         if(AI_MODE){
                             you_move();
                             return;
@@ -2115,7 +2146,9 @@
                         else
                             opponent_move();
                     }
+                    initMap(varMap2);
                 });
+                moveCount++;
             }
 
             function show_matchPopup() {
