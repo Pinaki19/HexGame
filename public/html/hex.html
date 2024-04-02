@@ -1924,8 +1924,11 @@
                         location.href="/";
                     }
                 });
-                if(AI_MODE && !isMobile){
-                    sess_init = await load_model();
+                if(AI_MODE){
+                    if(isMobile)
+                        sess_init=true;
+                    else
+                        sess_init = await load_model();
                 }
                     
             }
