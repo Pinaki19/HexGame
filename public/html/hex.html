@@ -1939,7 +1939,7 @@
                         var text= name==="You"? "AI LOST":"AI WON";
                         socket.send(JSON.stringify({ winner: text }));
                     }
-                    if(HasWinner(matrix) && name!="You"){
+                    if(HasWinner(matrix) && name==="You"){
                         const turnData = JSON.stringify(Array.from(turnMap.entries()));
                         socket.send(turnData);
                         const matrixData = JSON.stringify(matrix);
