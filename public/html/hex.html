@@ -1548,9 +1548,11 @@
         const time=20;
         var moveCount=0;
         let sess_init = false;
-
+        const userAgent = navigator.userAgent;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
         let isConnecting = true;
         async function AI_MOVE(index, moved) {
+            const startTime = Date.now();
                 const player = agent_is_blue ? "0" : "1";
                 const agent = agent_is_blue ? "1" : "0";
                 let ai_board = Array.from(matrix);
@@ -1560,14 +1562,60 @@
                     matrix[id] = player;
                     ai_board[id] = player;
                 }
-
+                if (HasWinner(matrix)) {
+                    console.log(winner);
+                    let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
+                    console.log("Game already won by", s);
+                    endGame(s);
+                    return;
+                }
                 // Introduce a random delay between 0 and 4 seconds
-                const delay = Math.floor(Math.random() * 4000);
+                const delay = Math.floor(Math.random() * 4000);   
+                if (isMobile) {
+                        // Make a POST request to /getAImove with the game state
+                        const requestBody = JSON.stringify({
+                            matrix: ai_board,
+                            player: player,
+                            agent: agent,
+                            agent_is_blue: agent_is_blue
+                        });
 
-                // Sleep for the random delay
-                await new Promise(resolve => setTimeout(resolve, delay));
+                        // Send the POST request
+                        try {
+                            const response = await fetch('/getAImove', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: requestBody
+                            });
 
-                handle_click(matrix, player, agent, ai_board, agent_is_blue).then(best => {
+                            if (!response.ok) {
+                                throw new Error('Failed to get AI move');
+                            }
+
+                            const responseData = await response.json();
+                            const best = responseData.nextMove;
+                            var elapsedTime = Date.now() - startTime;
+                            await new Promise(resolve => setTimeout(resolve, Math.max(delay - elapsedTime, 0)));
+                            set_color(best, true, false);
+                            matrix[best] = agent;
+                            updateTurn(moveCount, `AI played: ${best}`);
+                            moveCount++;
+
+                            if (HasWinner(matrix)) {
+                                let s = (starting && winner === "0" || !starting && winner === "1") ? "You" : "Opponent";
+                                console.log("Game already won by", s);
+                                endGame(s);
+                            }
+                            return;
+                        } catch (error) {
+                            console.error('Error occurred:', error);
+                        }
+                    }
+                    var best=await handle_click(matrix, player, agent, ai_board, agent_is_blue);
+                    var elapsedTime = Date.now() - startTime;
+                    await new Promise(resolve => setTimeout(resolve, Math.max(delay - elapsedTime, 0)));
                     set_color(best, true, false);
                     matrix[best] = agent;
                     updateTurn(moveCount, `AI played: ${best}`);
@@ -1579,10 +1627,7 @@
                         endGame(s);
                         return;
                     }
-                })
-                    .catch(error => {
-                        console.error('Error occurred:', error);
-                    });
+
             }
 
         $(document).ready(function () {
@@ -1879,7 +1924,7 @@
                         location.href="/";
                     }
                 });
-                if(AI_MODE){
+                if(AI_MODE && !isMobile){
                     sess_init = await load_model();
                 }
                     
@@ -1891,13 +1936,9 @@
                         var text= name==="You"? "AI LOST":"AI WON";
                         socket.send(JSON.stringify({ winner: text }));
                     }
-                    if(HasWinner(matrix)){
+                    if(HasWinner(matrix) && name!="You"){
                         const turnData = JSON.stringify(Array.from(turnMap.entries()));
                         socket.send(turnData);
-                        const Data1 = JSON.stringify(Array.from(varMap1.entries()));
-                        const Data2= JSON.stringify(Array.from(varMap2.entries()));
-                        socket.send(Data1);
-                        socket.send(Data2);
                         const matrixData = JSON.stringify(matrix);
                         socket.send(matrixData);
                     }

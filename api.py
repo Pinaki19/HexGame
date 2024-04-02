@@ -18,9 +18,13 @@ import uvicorn
 import pymongo
 from datetime import datetime
 from typing import Union, Dict, List, Set, Optional
+import onnxruntime
+import numpy as np
 
 import string
 underway=False
+
+session = onnxruntime.InferenceSession(r"./AI.onnx")
 
 class Move(BaseModel):
     row:int
@@ -29,6 +33,14 @@ class Move(BaseModel):
 class User(BaseModel):
     name: str
     profile_pic: str
+    
+
+class InputData(BaseModel):
+    # Define the input data model using Pydantic
+    matrix: list
+    player: str
+    agent: str
+    agent_is_blue: bool
 
 app = FastAPI()
 app.add_middleware(
@@ -51,9 +63,230 @@ turn_counts={}
 turn_details={}
 
 
+def handle_click(matrix, player, agent, agent_is_blue):
+    def PosToId(x, y):
+        return x + 11 * y
+
+    def has_winner(board):
+        # Define directions for hexagon grid
+        directions = [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0)]
+
+        # Function to check if a cell is valid
+        def is_valid_cell(row, col, check):
+            return row >= 0 and row < 11 and col >= 0 and col < 11 and board[col * 11 + row] == check
+
+        # Function to perform DFS traversal
+        def dfs(row, col, visited, target_row, target_col, check):
+            visited.add(col * 11 + row)
+            # If we reach the opposite side, we have a winner
+            if (target_row == 10 and row == target_row) or (target_col == 10 and col == target_col):
+                return True
+
+            # Check all neighbors
+            for dx, dy in directions:
+                new_row = row + dx
+                new_col = col + dy
+
+                # If the neighbor is valid and hasn't been visited, explore it
+                if is_valid_cell(new_row, new_col, check) and (new_col * 11 + new_row) not in visited:
+                    if dfs(new_row, new_col, visited, target_row, target_col, check):
+                        return True
+            return False
+
+        # Check for each starting position on the top and bottom sides
+        for row in range(11):
+            if board[row] == "0":
+                visited = set()
+                if dfs(row, 0, visited, 11, 10, "0"):
+                    return True
+        for col in range(0, 121, 11):
+            if board[col] == "1":
+                visited = set()
+                if dfs(0, col // 11, visited, 10, 11, "1"):
+                    return True
+        return False  # No winner found
+
+    def minimax(board, depth, current_player, first_player):
+        other_player = "0" if current_player == "1" else "1"
+        if has_winner(board):
+            if current_player == "0":
+                return -1, None  # blue won
+            else:
+                return 1, None  # red won
+
+        if depth == 0:
+            return 0, None  # no one won
+
+        if current_player == "0":  # red, maximizing
+            value = -10
+            best = None
+            for i in range(11 * 11):
+                if board[i] is not None:
+                    continue
+                board[i] = current_player
+                a, _ = minimax(board, depth - 1, other_player, first_player)
+                board[i] = None
+                if a > value:
+                    value = a
+                    best = i
+                if value >= 1:
+                    return value, best
+                if current_player != first_player and value == 0:
+                    return value, best
+            return value, best
+        else:  # blue, minimizing
+            value = 10
+            best = None
+            for i in range(11 * 11):
+                if board[i] is not None:
+                    continue
+                board[i] = current_player
+                a, _ = minimax(board, depth - 1, other_player, first_player)
+                board[i] = None
+                if a < value:
+                    value = a
+                    best = i
+                if value <= -1:
+                    return value, best
+                if current_player != first_player and value == 0:
+                    return value, best
+            return value, best
+
+    def add_border(x, y, input_values, border_color):
+        if x in [-1, 11] and y in [-1, 11]:
+            input_values.append(0)
+            return True
+        if x not in [-1, 11] and y not in [-1, 11]:
+            return False
+        if x in [-1, 11]:
+            input_values.append(1 if border_color else 0)
+        else:
+            input_values.append(0 if border_color else 1)
+        return True
+
+    def find_sure_win_move(board, player):
+        new_board=board.copy()
+        for depth in [1,3]:
+            a, val = minimax(new_board, depth, player, player)
+            if player == '0' and a > 0:
+                return val
+            elif player == '1' and a < 0:
+                return val
+        return None
+
+    def runModel(cells, agent_is_blue):
+        global session
+        input_values = []
+        board_size = 11
+
+        if agent_is_blue:
+            for x in range(-1, board_size + 1):
+                for y in range(-1, board_size + 1):
+                    if not add_border(x, y, input_values, 1):
+                        id = PosToId(x, y)
+                        input_values.append(1 if cells[id] == "1" else 0)
+
+            for x in range(-1, board_size + 1):
+                for y in range(-1, board_size + 1):
+                    if not add_border(x, y, input_values, 0):
+                        id = PosToId(x, y)
+                        input_values.append(1 if cells[id] == "0" else 0)
+        else:
+            for y in range(-1, board_size + 1):
+                for x in range(-1, board_size + 1):
+                    if not add_border(x, y, input_values, 0):
+                        id = PosToId(x, y)
+                        input_values.append(1 if cells[id] == "0" else 0)
+
+            for y in range(-1, board_size + 1):
+                for x in range(-1, board_size + 1):
+                    if not add_border(x, y, input_values, 1):
+                        id = PosToId(x, y)
+                        input_values.append(1 if cells[id] == "1" else 0)
+            
+        input_values2 = []
+        for id in range((board_size + 2) * (board_size + 2)):
+            input_values2.append(input_values[(board_size + 2) * (board_size + 2) - id - 1])
+        
+        for id in range((board_size + 2) * (board_size + 2)):
+            input_values2.append(input_values[2 * (board_size + 2) * (board_size + 2) - id - 1])
+
+        input_name = session.get_inputs()[0].name
+        output_name = session.get_outputs()[0].name
+        input_data = np.array(input_values, dtype=np.float32).reshape(
+            (1, 2, board_size + 2, board_size + 2))
+        outputTensor = [tensor.flatten().tolist() for tensor in session.run([
+            output_name], {input_name: input_data})][0]
+        input_name2 = session.get_inputs()[0].name
+        output_name2 = session.get_outputs()[0].name
+        input_data2 = np.array(input_values2, dtype=np.float32).reshape(
+            (1, 2, board_size + 2, board_size + 2))
+        outputTensor2 = [tensor.flatten().tolist() for tensor in session.run([
+            output_name2], {input_name2: input_data2})][0]
+        average_output = []
+        for id in range(board_size * board_size):
+            average_output.append(
+                (outputTensor[id] + outputTensor2[board_size * board_size - id - 1]) / 2)
+        final_output = []
+        if agent_is_blue:
+            # Transpose if agent is blue
+            for x in range(board_size):
+                for y in range(board_size):
+                    id = PosToId(x, y)
+                    final_output.append(average_output[id])
+        else:
+            final_output = average_output
+        
+        return final_output
+            
+    ai_board=matrix.copy()
+    sure_win_move=find_sure_win_move(ai_board,agent)
+    if sure_win_move:
+        print("Agent can surely win by move",sure_win_move)
+        return sure_win_move
+    result = runModel(ai_board, agent_is_blue)
+    best = -1
+    max_rating = float('-inf')
+    for i in range(len(matrix)):
+        if matrix[i] is None:
+            if best == -1 or result[i] > max_rating:
+                best = i
+                max_rating = result[i]
+
+
+    test_board = matrix.copy()
+    test_board[best] = agent
+
+    sure_win = find_sure_win_move(test_board, player)
+    if sure_win is not None:
+        print(f"Player can surely win with the suggested move {sure_win}")
+        print("Blocking the player")
+        best = sure_win
+
+    return best
+    
+
+
 @app.exception_handler(404)
 async def not_found_exception_handler(request: Request, exc: HTTPException):
     return error(request,exc.status_code, "Oops! This route does not exist.")
+
+
+@app.post('/getAImove')
+def get_ai_move(data: InputData):
+    try:
+        matrix = data.matrix
+        player = data.player
+        agent = data.agent
+        agent_is_blue = data.agent_is_blue
+
+        # Call your handle_click function or run inference directly here
+        next_move = handle_click(matrix, player, agent,agent_is_blue)
+
+        return {"nextMove": next_move}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error processing request")
 
 
 @app.get("/")
