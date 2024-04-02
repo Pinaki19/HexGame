@@ -1900,10 +1900,6 @@
                         socket.send(Data2);
                         const matrixData = JSON.stringify(matrix);
                         socket.send(matrixData);
-                        const Data1 = JSON.stringify(varMap1);
-                        socket.send(Data1);
-                        const Data2 = JSON.stringify(varMap2);
-                        socket.send(Data2);
                     }
                     socket.send(JSON.stringify({ action: "END" }));
                 }
