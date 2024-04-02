@@ -1894,6 +1894,10 @@
                     if(HasWinner(matrix)){
                         const turnData = JSON.stringify(Array.from(turnMap.entries()));
                         socket.send(turnData);
+                        const Data1 = JSON.stringify(Array.from(varMap1.entries()));
+                        const Data2= JSON.stringify(Array.from(varMap2.entries()));
+                        socket.send(Data1);
+                        socket.send(Data2);
                         const matrixData = JSON.stringify(matrix);
                         socket.send(matrixData);
                     }
