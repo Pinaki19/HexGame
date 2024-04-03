@@ -62,6 +62,10 @@
             color:#3568ea !important;
         }
 
+        .z-index{
+            z-index: 9999;
+        }
+
 .board {
     display: flex;
     justify-content: center;
@@ -1969,8 +1973,11 @@
                         rgba(108, 122, 137,0.4)
                         url("/public/img/win.gif")
                         center
-                        no-repeat
-                    `:""
+                        repeat
+                    `:"",
+                    customClass:{
+                        backdrop:'z-index'
+                    }
                 }).then((result) => {
                     location.href='/';
                 });

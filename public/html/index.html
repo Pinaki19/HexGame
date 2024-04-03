@@ -222,7 +222,6 @@
                                     }
                                     throw new Error('Failed to create game');
                                 }).then( data =>{
-                                    console.log(data);
                                     if(data.start){
                                         location.href=`/new-game/${gameId}/?AI_MODE=False`
                                     }
@@ -306,7 +305,12 @@
         // Get the copy button and the text area
         const copyButton = document.getElementById('copyButton');
         const gameLink = document.getElementById('gameLink');
-        gameLink.value = location.href + "join-game/" + gameId;
+        var currentUrl = window.location.href;
+        if (currentUrl.endsWith('#')) {
+            // Discard the '#' by removing the last character
+            currentUrl = currentUrl.slice(0, -1);
+        }
+        gameLink.value = currentUrl + "join-game/" + gameId;
 
          copyButton.addEventListener('mouseenter', function () {
                 copyButton.title = "Copy to Clipboard";
