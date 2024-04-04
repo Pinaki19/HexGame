@@ -523,14 +523,29 @@ async def switch_player(request:Request):
 
 
 async def clear_dicts():
-    global underway  
+    global underway
     if underway:
         return
     print("Cleaning started")
     underway = True
+
+    # Take a snapshot of the dictionaries before sleeping
+    snapshot_mapping = dict(game_mapping)
+    snapshot_connections = dict(connections)
+    snapshot_coroutines = dict(game_coroutines)
+    snapshot_cur_games = dict(cur_games)
+    snapshot_turn_counts = dict(turn_counts)
+    snapshot_turn_details = dict(turn_details)
+
     await asyncio.sleep(15*60)  # 15 minutes in seconds
-    for d in [game_mapping, connections, game_coroutines, cur_games,turn_counts,turn_details]:
-        d.clear()
+
+    # Compare with the snapshot and clear any new items
+    for d, snapshot in zip([game_mapping, connections, game_coroutines, cur_games, turn_counts, turn_details],
+                           [snapshot_mapping, snapshot_connections, snapshot_coroutines, snapshot_cur_games,
+                            snapshot_turn_counts, snapshot_turn_details]):
+        for key in list(snapshot.keys()):
+                d.pop(key,None)
+
     print("Dictionaries cleaned")
     underway = False
 
