@@ -115,7 +115,11 @@
                                 <h1>Play Hex</h1>
                                 <p>Hex is a two player abstract strategy board game in which players attempt to connect opposite sides of a rhombus-shaped
                                 board made of hexagonal cells.</p>
-                                <a style="cursor:pointer;" onclick="showOptions()" class="btn_1">PLAY NOW</a>
+                                <div class="d-flex">
+                                    <a style="cursor:pointer;" onclick="showOptions()" class="btn_1">PLAY NOW</a>
+                                    <a style="cursor:pointer; margin-left:4em;" onclick="showGamesPopup()" class="btn_1">Live Games</a>
+                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -134,7 +138,7 @@
                     <div class="d-flex justify-content-around align-items-lg-center">
                         <div class="col-sm-6 d-flex justify-content-center">
                             <div class="single_footer_part">
-                                <a href="index.html" class="footer_logo_iner"> <img src="public/img/logo.png" alt="#"> </a>
+                                <a href="\" class="footer_logo_iner"> <img src="public/img/logo.png" alt="#"> </a>
                                 <h4 style="font-family:'Times New Roman', Times, serif;">Hex AI and PvP by PINAKI BANERJEE</h4>
                             </div>
                         </div>
@@ -188,7 +192,7 @@
         function showOptions(){
             Swal.fire({
                 title: "Choose opponent",
-                text: "You can invite a friend with the link provided or Play against our AI",
+                text: "You can Invite a friend with the link provided or Play against our AI",
                 icon: "warning",
                 timer:20000,
                 showCancelButton: true,
@@ -350,6 +354,113 @@
             // Set the header width to match the window's inner width
             header.style.width = window.innerWidth-10+ 'px';
         });
+
+
+        async function showGamesPopup() {
+            let intervalId; // Declare intervalId in the parent scope
+        
+            const swalInstance = await Swal.fire({
+                title: 'Live Games',
+                html: '<div id="gameTable" class="table-responsive">Loading...</div>',
+                showCancelButton: true,
+                didOpen: async () => {
+                    const gameTableDiv = document.getElementById('gameTable');
+        
+                    // Function to convert seconds to minutes:seconds format
+                    const formatDuration = (seconds) => {
+                        const minutes = Math.floor(seconds / 60);
+                        const remainingSeconds = Math.floor(seconds % 60);
+                        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+                    };
+        
+                    // Function to fetch and update the table
+                    const updateTable = async () => {
+                        try {
+                            const response = await fetch('/get-live-games');
+                            if (!response.ok) {
+                                throw new Error(response.statusText);
+                            }
+                            const result = await response.json();
+                            const gameData = result.data;
+        
+                            gameTableDiv.innerHTML = ""; // Clear previous content
+        
+                            if (gameData && gameData.length > 0) {
+                                const table = document.createElement('table');
+                                table.classList.add('table', 'table-striped', 'table-bordered');
+        
+                                const thead = document.createElement('thead');
+                                thead.classList.add('thead-dark');
+                                thead.innerHTML = `
+                                    <tr>
+                                        <th>Player 1</th>
+                                        <th>Player 2</th>
+                                        <th>Duration</th>
+                                        <th>Action</th>
+                                    </tr>`;
+                                table.appendChild(thead);
+        
+                                const tbody = document.createElement('tbody');
+                                gameData.forEach(game => {
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${game.player1}</td>
+                                        <td>${game.player2}</td>
+                                        <td>${formatDuration(game.duration)}</td>
+                                        <td><button class="btn btn-primary watch-button" data-game-id="${game.gameId}">Watch</button></td>
+                                    `;
+                                    tbody.appendChild(row);
+                                });
+                                table.appendChild(tbody);
+        
+                                gameTableDiv.appendChild(table);
+        
+                                // Add event listeners to watch buttons
+                                document.querySelectorAll('.watch-button').forEach(button => {
+                                    button.addEventListener('click', function() {
+                                        const gameId = this.dataset.gameId;
+                                        watchGame(gameId);
+                                    });
+                                });
+                            } else {
+                                gameTableDiv.innerHTML = "No live games available.";
+                            }
+                        } catch (error) {
+                            gameTableDiv.innerHTML = `Failed to load live games: ${error.message}`;
+                        }
+                    };
+        
+                    // Initial table load
+                    await updateTable();
+        
+                    // Refresh table every 2 seconds
+                    intervalId = setInterval(updateTable, 2000);
+                },
+                willClose: () => {
+                    // Clear the interval when the popup is closed
+                    if (intervalId) {
+                        clearInterval(intervalId);
+                    }
+                },
+                customClass: {
+                    popup: 'custom-font2',
+                    title: 'custom-font2',
+                    content: 'custom-font2',
+                    confirmButton: 'custom-font2',
+                    cancelButton: 'custom-font2'
+                },
+            });
+        
+            // Ensure the popup is fully closed before allowing another click
+            await swalInstance;
+        }
+        
+       
+
+    // Function to watch a game
+    function watchGame(gameId) {
+        location.href=`/watch/${gameId}`;
+    }
 
     </script>
 </body>
