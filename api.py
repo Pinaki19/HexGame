@@ -20,7 +20,6 @@ from datetime import datetime
 from typing import Union, Dict, List, Set, Optional
 import onnxruntime
 import numpy as np
-from run_agent import handle_click as Handle_click
 from datetime import datetime
 
 underway=False
