@@ -20,11 +20,11 @@ from datetime import datetime
 from typing import Union, Dict, List, Set, Optional
 import onnxruntime
 import numpy as np
+from run_agent import handle_click as Handle_click
+from datetime import datetime
 
-import string
 underway=False
-
-session = onnxruntime.InferenceSession(r"./AI.onnx")
+session = None
 
 class Move(BaseModel):
     row:int
@@ -33,6 +33,9 @@ class Move(BaseModel):
 class User(BaseModel):
     name: str
     profile_pic: str
+    
+class gameRequest(BaseModel):
+    id:str
     
 
 class InputData(BaseModel):
@@ -51,16 +54,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+templates = None
 
-app.mount("/public", StaticFiles(directory="public"), name="public")
-templates = Jinja2Templates(directory="public/html/")
-
-game_mapping: Dict[str, List[str]] = {}
-cur_games: Dict[str,str] = {}
-connections: Dict[str, Dict[str,WebSocket]] = {}
-game_coroutines = {}
-turn_counts={}
-turn_details={}
+game_mapping: Dict[str, List[str]] = {}                 #stores a game_id vs list of 2 session_ids
+cur_games: Dict[str,str] = {}                           #current ongoing games
+connections: Dict[str, Dict[str,WebSocket]] = {}        #stores a web_socket connection against a game and session
+game_coroutines = {}                                    #helps start game in async mode
+turn_counts={}                                          # how many turns have benn played in a game
+turn_details={}                                         #stores who had the first turn
+start_times={}                                          #when did a game start?
+watch_list={}                                           # list of sockets watching this game
+game_participants={}                                    #names of participants for a game
 
 
 def handle_click(matrix, player, agent, agent_is_blue):
@@ -281,7 +285,7 @@ def get_ai_move(data: InputData):
         agent_is_blue = data.agent_is_blue
 
         # Call your handle_click function or run inference directly here
-        next_move = handle_click(matrix, player, agent,agent_is_blue)
+        next_move = Handle_click(matrix, player, agent,agent_is_blue)
 
         return {"nextMove": next_move}
 
@@ -291,10 +295,6 @@ def get_ai_move(data: InputData):
 
 @app.get("/")
 async def welcome_user(request: Request, user: str = "user"):
-    print(game_mapping)
-    print(cur_games)
-    print(connections)
-    print(game_coroutines)
     session_id = request.cookies.get("session_id")
     if session_id is None:
         session_id = str(uuid.uuid4())
@@ -348,6 +348,20 @@ async def create_game(request: Request) -> Dict[str, str]:
     game_coroutines[game_id] = asyncio.Event()
     return {"id":game_id}
 
+@app.get('/watch/{game_id}')
+def watch_game(request: Request,game_id:str):
+    if game_id not in start_times:
+        return error(request, 404, "Game with specified Id does not exist")
+    try:
+        name1,name2=game_participants[game_id]
+        response = templates.TemplateResponse(
+            "watchHex.html", {"request": request, "player1":name1, "player2":name2})
+        id = request.cookies.get("session_id")
+        response.set_cookie(key="session_id", value=id)
+        response.set_cookie(key="game_id", value=game_id)
+        return response
+    except Exception:
+        return error(request, 520, "Some Internal Error! try again.")
 
 @app.get('/start-game/{game_id}')
 async def start(request:Request,game_id: str):
@@ -382,6 +396,12 @@ async def join_game(game_id: str,request: Request) -> str:
     return response
 
 
+def add_name(game_id,user_name):
+    if game_id not in game_participants:
+        game_participants[game_id]=[]
+    game_participants[game_id].append(user_name)
+    
+
 @app.websocket("/ws/{game_id}/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str):
     await websocket.accept()
@@ -393,36 +413,99 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
     connections[game_id][session_id] = websocket
     try:
         while True:
-            # Receive message from client (acknowledgment)
             data = await websocket.receive_text()
-            print(data)
-            if data == '{"action":"acknowledge"}':
+            message = json.loads(data) 
+            
+            if message.get("action") == "gameData":
+                id=message.get('answer_for')
+                name1,name2=game_participants[game_id]
+                message["Type"]= 1
+                message["p1_name"]=name1
+                message["p2_name"]=name2
+                socket_to=watch_list[game_id][id]
+                try:
+                    await socket_to.send_text(json.dumps(message))
+                except Exception as e:
+                    print("Error::",e)
+                    continue
+            elif message.get("action") == "blue":
+                name1,name2=game_participants[game_id]
+                if name1!=message.get('name'):
+                    game_participants[game_id]=[name2,name1]
+            elif message.get('action')=='moveDetails':
+                message["Type"]=2
+                await broadcast(game_id,message)
+            elif message.get('action')=='missed':
+                message["Type"]=3
+                await broadcast(game_id,message)
+            elif message.get('action')=='switch':
+                message["Type"]=4
+                name1,name2=game_participants[game_id]
+                game_participants[game_id]=[name2,name1]
+                message["player1"]=name2
+                message["player2"]=name1
+                await broadcast(game_id,message)
+            elif message.get("action") == "acknowledge":
+                user_name = message.get("name")
                 cur_games[session_id] = game_id
+                add_name(game_id,user_name)
+                if message.get("AI"):
+                    add_name(game_id,"AI")
+                    start_times[game_id]=datetime.now()
                 await handle_acknowledgment(game_id)
-            if data == '{"action":"END"}':
+            elif message.get('action')=='WIN':
+                message["Type"]=5
+                name1,name2=game_participants.get(game_id)
+                name= name1 if message.get("player1") else name2
+                message['Winner']=name
+                await broadcast(game_id,message)
+            elif message.get("action") == 'END':
                 connections.pop(game_id,None)
                 game_mapping.pop(game_id,None)
                 break
     except WebSocketDisconnect:
         # WebSocket connection closed
         try:
+            start_times.pop(game_id,None)
             turn_details.pop(session_id,None)
             turn_counts.pop(game_id,None)
             other= 1 if game_mapping[game_id][0]==session_id else 0
             other_session=game_mapping[game_id][other]
             if game_id in connections and other_session in connections[game_id]:
                 socket=connections[game_id][other_session]
-                print("sock: ",socket)
                 message = json.dumps(
                     {"Type": 5, "win":True})
                 await socket.send_text(message)
                 connections.pop(game_id,None)
-                game_mapping.pop(game_id)
+                game_mapping.pop(game_id,None)
         except Exception as e:
             print(f"WebSocket connection closed with exception: {e} 1")
         # Perform cleanup or other actions as needed
     except Exception as e:
         print(f"WebSocket connection closed with exception: {e} 2")
+
+@app.websocket("/ws/watch/{game_id}/{session_id}")
+async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str):
+    await websocket.accept()
+    
+    if game_id not in watch_list:
+        watch_list[game_id] = {}
+    watch_list[game_id][session_id] = websocket
+
+    try:
+        while True:
+            data = await websocket.receive_text()  # Wait for incoming messages
+            # Handle incoming data here
+            print(f"Received data: {data}")
+            
+            # Optionally, send a response back to the client
+            await websocket.send_text(f"Echo: {data}")
+    except WebSocketDisconnect:
+        print(f"WebSocket disconnected for session {session_id} and game {game_id}")
+        # Clean up the watch list entry if the WebSocket disconnects
+        del watch_list[game_id][session_id]
+        if not watch_list[game_id]:
+            del watch_list[game_id]
 
 
 async def handle_acknowledgment(game_id: str):
@@ -447,15 +530,15 @@ async def start_game(game_id: str):
             turn_details[s2]=True
         if turn == 1:
             sock1, sock2 = sock2, sock1  # Swap sockets
-
         # Send start message to sockets
-        start_message1 = '{"Type":1,"readyToStart":true,"turn":true}'
-        start_message2 = '{"Type":1,"readyToStart":true,"turn":false}'
+        name1,name2=game_participants[game_id]
+        start_message1 = {"Type":1,"readyToStart":True,"turn":True,"p1":name1,"p2":name2}
+        start_message2 = {"Type":1,"readyToStart":True,"turn":False,"p1":name1,"p2":name2}
 
         # Define a timeout for waiting for responses
-    
-        await sock1.send_text(start_message1),
-        await sock2.send_text(start_message2)
+        start_times[game_id]=datetime.now()
+        await sock1.send_text(json.dumps(start_message1))
+        await sock2.send_text(json.dumps(start_message2))
         turn_counts[game_id]=0
     except:
         print("Error")
@@ -465,7 +548,7 @@ async def start_game(game_id: str):
 @app.post("/make_move")
 async def make_move(request: Request, data:Move):
     # Retrieve game_id and session_id from cookies
-    data=data.dict()
+    data = data.model_dump()
     row=data.get("row",-1)
     column=data.get("column",-1)
     game_id = request.cookies.get("game_id")
@@ -508,7 +591,6 @@ async def make_move(request: Request, data:Move):
 async def switch_player(request:Request):
     game_id = request.cookies.get("game_id")
     session_id = request.cookies.get("session_id")
-    print(turn_details,turn_counts)
     s1,s2=game_mapping[game_id]
     if s1!=session_id:
         s1,s2=s2,s1
@@ -520,6 +602,62 @@ async def switch_player(request:Request):
         await sock1.send_text(message1)
         await sock2.send_text(message2)
     return {"message": "swith request processed"}
+
+
+
+@app.on_event("startup")
+def start_up():
+    global session
+    global app
+    global templates
+    current=os.path.dirname(os.path.abspath(__file__))
+    os.chdir(current)
+    session=onnxruntime.InferenceSession(r"./AI.onnx")
+    templates=Jinja2Templates(directory="public/html/")
+    app.mount("/public", StaticFiles(directory="public"), name="public")
+    print("---------------------------")
+    print("session loaded",session is not None)
+    print("---------------------------")
+    if session is None:
+        exit(1)
+        
+@app.get('/get-live-games')
+async def get_live_games():
+    games=[]
+    
+    for game_id in start_times:
+        try:
+            time_elapsed=datetime.now()-start_times[game_id]
+            name1,name2=game_participants[game_id]
+            game={
+                "player1":name1,
+                "player2":name2,
+                "duration":time_elapsed,
+                "gameId":game_id,
+            }
+            games.append(game)
+        except Exception as e:
+            print("error")
+        
+    return {"data":games}
+
+
+@app.post('/get_game_state')
+async def get_game_info(request:Request,data:gameRequest):
+    game_id=data.id
+    for socket in connections[game_id].values():
+        message = json.dumps({"Type": 6, "id":request.cookies.get("session_id")})
+        await socket.send_text(message)
+    return {"success":True}
+    
+async def broadcast(game_id,message):
+    if game_id not in watch_list:
+        return
+    for socket in watch_list[game_id].values():
+        try:
+            await socket.send_text(json.dumps(message))
+        except Exception as e:
+            del watch_list[game_id]
 
 
 async def clear_dicts():
@@ -536,13 +674,16 @@ async def clear_dicts():
     snapshot_cur_games = dict(cur_games)
     snapshot_turn_counts = dict(turn_counts)
     snapshot_turn_details = dict(turn_details)
+    snapshot_start_times = dict(start_times)
+    snapshot_game_participants=dict(game_participants)
+    snapshot_watch_list=dict(watch_list)
 
     await asyncio.sleep(15*60)  # 15 minutes in seconds
 
     # Compare with the snapshot and clear any new items
-    for d, snapshot in zip([game_mapping, connections, game_coroutines, cur_games, turn_counts, turn_details],
+    for d, snapshot in zip([game_mapping, connections, game_coroutines, cur_games, turn_counts, turn_details,watch_list,game_participants,start_times],
                            [snapshot_mapping, snapshot_connections, snapshot_coroutines, snapshot_cur_games,
-                            snapshot_turn_counts, snapshot_turn_details]):
+                            snapshot_turn_counts, snapshot_turn_details,snapshot_watch_list,snapshot_game_participants,snapshot_start_times]):
         for key in list(snapshot.keys()):
                 d.pop(key,None)
 

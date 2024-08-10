@@ -225,7 +225,7 @@
                 <a class="nav-link d-sm-flex align-items-sm-center" href="#">
                     <img src="/public/img/user.png" class="rounded-circle" height="22"
                         alt="Black and White Portrait of a Man" loading="lazy" />
-                    <strong class="d-none d-sm-block ms-1">OPPONENT</strong>
+                    <strong class="d-none d-sm-block ms-1" id="Oppo">OPPONENT</strong>
                 </a>
                 <div id="opponentTimer">30</div>
                 
@@ -1546,6 +1546,8 @@
         const Def='white';
         var matrix = Array(board_size * board_size).fill(null);
         var agent_is_blue=true;
+        var player_blue=true;
+        var UserName="Player 1";
         var winner=null;
         var starting=true;
         var flag=true;
@@ -1575,7 +1577,7 @@
                 }
                 // Introduce a random delay between 0 and 4 seconds
                 const delay = Math.floor(Math.random() * 4000);   
-                if (isMobile) {
+                if (isMobile) {    // isMobile
                         // Make a POST request to /getAImove with the game state
                         const requestBody = JSON.stringify({
                             matrix: ai_board,
@@ -1772,6 +1774,7 @@
                         hexagon.css('fill', Red);
                     else
                         hexagon.css('fill', Blue);
+                    send_move(index,!agent_is_blue);
                     return;
                 }
                 var hexagonGroup = $('.hexagon-group').eq(index);
@@ -1795,6 +1798,7 @@
                             matrix[index] = "1";
                         }
                     }
+                    send_move(index,player&&agent_is_blue||(!player && !agent_is_blue));
                     return;
                 }
                 else if(starting){
@@ -1815,12 +1819,38 @@
                         hexagon.css('fill', Blue);
                          matrix[index] = "0";
                     }  
-                }  
+                }
+                if(flag)
+                    send_move(index,starting&& !flag||(!starting && flag))  ;
             }
 
             var youTimer ;
             var opponentTimer;
             var interval;
+
+            function send_move(index,player_blue){
+                const body={
+                    action: "moveDetails",
+                    player: player_blue,
+                    index:index,
+                };
+                socket.send(JSON.stringify(body));
+            }
+
+            function send_switch(){
+                const body={
+                    action: "switch",
+                };
+                socket.send(JSON.stringify(body));
+            }
+
+            function send_move_missed(player_blue){
+                const body={
+                    action: "missed",
+                    player: player_blue,
+                };
+                socket.send(JSON.stringify(body));
+            }
 
             async function startYouTimer() {
                 document.getElementById('Opponent').style.backgroundColor='#3b3b3b';
@@ -1836,6 +1866,7 @@
                     $('#youTimer').text(youTimer);
                     if (youTimer == 0) {
                         clearInterval(interval);
+                        send_move_missed(player_blue);           //whooo missed???
                         makeMove(-1, -1);
                         Swal.fire("You ran out of time!");
                         if(AI_MODE){
@@ -1865,6 +1896,9 @@
                     $('#opponentTimer').text(opponentTimer);
                     if (opponentTimer == 0) {
                         clearInterval(interval);
+                        if(AI_MODE){
+                            send_move_missed(!agent_is_blue);
+                        }
                     }
                 }, 1000);
             }
@@ -1896,38 +1930,51 @@
                 }
                     
             }
-            async function show(){
-                swal.fire({
+            async function show() {
+                const { value: userName } = await Swal.fire({
                     title: "Are you Ready to start?",
                     text: "You will not be able to stop unless you wish to surrender!",
-                    type: "warning",
+                    input: 'text',
+                    inputPlaceholder: 'Enter your name',
+                    inputAttributes: {
+                        maxlength: 8 // Restrict the input length to 8 characters
+                    },
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'You need to enter your name!';
+                        }
+                    },
+                    icon: "warning",
                     showCancelButton: true,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     allowEnterKey: false,
                     confirmButtonColor: "#DD6B55",
                     confirmButtonText: "Confirm",
-                    cancelButtonText: "cancel",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        sendAcknowledgement();
-                        if(AI_MODE){
-                            const random_number = Math.floor(Math.random() * 2);
-                            if (random_number === 0) {
-                                agent_is_blue=true;
-                                starting = true;
-                                flag = true;
-                            } else {
-                                agent_is_blue=false;
-                                starting = false;
-                                flag = false;
-                            }
-                            show_matchPopup();
+                    cancelButtonText: "Cancel",
+                });                
+                if (userName) {
+                    console.log("User Name:", userName); // Access the user's name here
+                    UserName=userName;
+                    sendAcknowledgement(userName); // Pass the userName to sendAcknowledgement function
+                    if (AI_MODE) {
+                        const random_number = Math.floor(Math.random() * 2);
+                        if (random_number === 0) {
+                            agent_is_blue = true;
+                            starting = true;
+                            flag = true;
+                        } else {
+                            agent_is_blue = false;
+                            starting = false;
+                            flag = false;
+                            send_switch();
                         }
-                    } else {
-                        location.href="/";
+                        show_matchPopup(); 
                     }
-                });
+                } else {
+                    location.href = "/";
+                }
+
                 if(AI_MODE){
                     if(isMobile)
                         sess_init=true;
@@ -1941,7 +1988,9 @@
                 if(socket.readyState === WebSocket.OPEN){
                     if(AI_MODE){
                         var text= name==="You"? "AI LOST":"AI WON";
-                        socket.send(JSON.stringify({ winner: text }));
+                        socket.send(JSON.stringify({ action: "WIN",winner: text,player1:winner === "0"? true:false }));
+                    }else if(name==="You"){
+                        socket.send(JSON.stringify({ action: "WIN",winner: text,player1:winner === "0"? true:false }));
                     }
                     if(HasWinner(matrix) && name==="You"){
                         const turnData = JSON.stringify(Array.from(turnMap.entries()));
@@ -2004,7 +2053,7 @@
 
             socket.onmessage = async function (event) {
                 let data = JSON.parse(event.data);
-                //console.log(data);
+                console.log(data);
                 if(data.Type==1){
                     if (data.readyToStart) {
                         moveCount=0;
@@ -2013,10 +2062,18 @@
                         OppoMissed=0;
                         OppoPlayed=0;
                         ongoing = true;
+                        name1=data.p1;
+                        name2=data.p2;
+                        if(name1===UserName)
+                            $('#Oppo').text(name2);
+                        else
+                            $('#Oppo').text(name1);
                         starting = data.turn;
                         flag = data.turn;
                         show_matchPopup(); 
                         player_color();
+                        if(flag)
+                            sync_blue();
                         
                     } else {
                         console.error("Error: Game cannot be started yet");
@@ -2043,6 +2100,7 @@
                     }
                     player_color();
                     flag=data.turn;
+                    player_blue=!player_blue;
                     Swal.fire({
                         title: "Switched!",
                         text: starting? "You are now playing as BLUE player":"You are now playing as RED player, make your move",
@@ -2062,6 +2120,28 @@
                 else if(data.Type==5){
                     endGame("You");
                     return;
+                }else if(data.Type==6){
+                    if(flag||AI_MODE){
+                        var color=true;
+                        if(flag)
+                            color=player_blue;
+                        else if(AI_MODE)
+                            color=!agent_is_blue;
+                        const req_from=data.id;
+                        const body={
+                            action: "gameData",
+                            answer_for:req_from,
+                            responder: color,
+                            matrix:matrix,
+                            time:time,
+                            remaining:youTimer,
+                            p1_moves: starting? YouPlayed:OppoPlayed,
+                            p1_missed: starting? YouMissed:OppoMissed,
+                            p2_moves: starting? OppoPlayed:YouPlayed,
+                            p2_missed:starting? OppoMissed:YouMissed,
+                        };
+                        socket.send(JSON.stringify(body));
+                    }
                 }
                 else{
                     flag = data.turn;
@@ -2107,6 +2187,12 @@
                 console.log("WebSocket connection closed");
             };
 
+            function sync_blue(){
+                if(starting){
+                    socket.send(JSON.stringify({ action: "blue", name:UserName, AI:AI_MODE }));
+                }
+            }
+
             function player_color(){
                 if(starting){
                     document.getElementById("Youcolor").className = "color-square1";
@@ -2142,6 +2228,8 @@
                 }).then(async (result) => {
                     if (result.isConfirmed) {
                         turnMap.set("switch",true);
+                        send_switch();
+                        player_blue=!player_blue;
                         if(AI_MODE){
                             starting = true;
                             flag = false;
@@ -2210,7 +2298,9 @@
                 player_color();
                 let timerInterval;
                 let intervalCheck;
-
+                player_blue=starting;
+                if(AI_MODE)
+                    $('#Oppo').text("AI ");
                 Swal.fire({
                     title: starting ? "You are playing as BLUE" : "You are playing as RED",
                     html: "Match starts in <b>3</b> seconds",
@@ -2259,14 +2349,14 @@
             }
 
            
-            function sendAcknowledgement() {
+            function sendAcknowledgement(username) {
                 if (!isConnecting && socket.readyState === WebSocket.OPEN) {
-                    socket.send(JSON.stringify({ action: "acknowledge" }));
+                    socket.send(JSON.stringify({ action: "acknowledge", name:username, AI:AI_MODE }));
                 } else {
                     // If the connection is still connecting or not open, wait and retry
                     setTimeout(() => {
-                        sendAcknowledgement();
-                    }, 500); // Retry after 1 second (adjust as needed)
+                        sendAcknowledgement(username);
+                    }, 250); // Retry after 250 ms
                 }
             }
 
@@ -2287,6 +2377,9 @@
                     // Show a confirmation dialog
                     var confirmationMessage = 'Are you sure you want to leave this page? ';
                     e.returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
+                    if(confirmationMessage){
+                        socket.send(JSON.stringify({ action: "WIN",player1:!player_blue}));
+                    }
                     window.location.href = '/';
                 });
         function Surrender(){
@@ -2303,78 +2396,11 @@
                 icon:"warning"
             }).then((result) => {
                 if(result.isConfirmed){
+                    socket.send(JSON.stringify({ action: "WIN",player1:!player_blue}));
                     location.href='/';    
                 }
             });
         }
-
-        
-
-        function calculateWinningProbability(board, player) {
-                const N = 11; // Board size
-
-                // Function to check if there is a path from one side to the other for the player
-                function isWinner() {
-                    if (HasWinner(board) && winner === player)
-                        return true;
-                    return false;
-                }
-
-                // Calculate influence for each cell based on distance from edges, connectivity, and centrality
-                const influence = new Array(N * N).fill(0);
-                for (let i = 0; i < N * N; i++) {
-                    if (board[i] === player) {
-                        const [row, col] = IdToPos(i);
-                        const distanceToEdge = Math.min(row, N - 1 - row, col, N - 1 - col);
-
-                        // Weighted influence factors
-                        const edgeWeight = 1 / (distanceToEdge + 1); // Higher weight for cells closer to edges
-                        const connectivityWeight = calculateConnectivity(board, player, row, col); // Connectivity weight
-                        const centralityWeight = calculateCentrality(row, col, N); // Centrality weight
-
-                        // Combined influence
-                        influence[i] += edgeWeight + connectivityWeight + centralityWeight;
-                    }
-                }
-
-                // Calculate total influence for the player
-                const totalInfluence = influence.reduce((sum, value) => sum + value, 0);
-
-                // Estimate winning probability based on total influence
-                const winningProbability = totalInfluence / (N * N);
-                return winningProbability;
-            }
-
-            // Function to calculate connectivity weight for a cell
-            function calculateConnectivity(board, player, row, col) {
-                const N = 11; // Board size
-                let connectivityWeight = 0;
-
-                const neighbors = [[1, -1], [1, 0], [0, -1], [0, 1], [-1, 0], [-1, 1]];
-                for (const [dr, dc] of neighbors) {
-                    const newRow = row + dr;
-                    const newCol = col + dc;
-                    if (newRow >= 0 && newRow < N && newCol >= 0 && newCol < N && board[PosToId(newRow, newCol)] === null) {
-                        connectivityWeight += 0.5; // Increase connectivity weight for empty neighboring cells
-                    }
-                }
-                return connectivityWeight;
-            }
-
-            // Function to calculate centrality weight for a cell
-            function calculateCentrality(row, col, N) {
-                // Calculate distance from center of the board
-                const centerX = (N - 1) / 2;
-                const centerY = (N - 1) / 2;
-                const distanceToCenter = Math.sqrt((row - centerY) ** 2 + (col - centerX) ** 2);
-
-                // Normalize distance to center to a value between 0 and 1
-                const normalizedDistance = 1 - (distanceToCenter / Math.max(N / 2, N / 2));
-
-                // Weight centrality based on normalized distance
-                return normalizedDistance;
-            }
-
 
     </script>
 </body>
