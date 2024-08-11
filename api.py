@@ -692,7 +692,7 @@ async def clear_dicts():
     # Compare with the snapshot and clear any new items
     for d, snapshot in zip([game_mapping, connections, game_coroutines, cur_games, turn_counts, turn_details,watch_list,game_participants,start_times,socket_list],
                            [snapshot_mapping, snapshot_connections, snapshot_coroutines, snapshot_cur_games,
-                            snapshot_turn_counts, snapshot_turn_details,snapshot_watch_list,snapshot_game_participants,snapshot_start_times,snapshot_start_times]):
+                            snapshot_turn_counts, snapshot_turn_details,snapshot_watch_list,snapshot_game_participants,snapshot_start_times,snapshot_start_times,snapshot_socket_list]):
         for key in list(snapshot.keys()):
                 d.pop(key,None)
 
