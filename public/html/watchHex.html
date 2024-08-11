@@ -1578,10 +1578,10 @@
             
             var timerElement= blue_turn? $('#p1Timer'):$('#p2Timer');
 
-            timerElement.text(time_left);
+            timerElement.text(String(time_left));
             interval = setInterval(async function () {
                 time_left--;
-                timerElement.text(time_left);
+                timerElement.text(String(time_left));
                 if (time_left == 0) {
                     clearInterval(interval);
                     timerElement.text("0");
@@ -1661,7 +1661,10 @@
                     p1Name=data.p1_name;
                     p2Name=data.p2_name;
                     time=data.time;
-                    remtime=data.remaining;
+                    let remtime = data.remaining;
+                    if (isNaN(remtime)) {
+                        remtime = Number(remtime); // Convert to number
+                    }
                     player1_moves=data.p1_moves;
                     player1_missed=data.p1_missed;
                     player2_moves=data.p2_moves;
@@ -1689,7 +1692,7 @@
                         player2_moves++;
                     set_color(data.index,data.player);
                     setup();
-                    blue_turn=!blue_turn;
+                    blue_turn=data.blue;
                     startTimer(time);
                 } else if (data.Type==3) {      // process move miss
                     let pl=data.player;
@@ -1698,10 +1701,10 @@
                     else
                         player2_missed++;
                     setup();
-                    blue_turn=!blue_turn;
+                    blue_turn=data.blue;
                     startTimer(time);
                 }else if (data.Type==4) {      // process switch
-                    blue_turn=false;
+                    blue_turn=data.blue;
                     startTimer(time);
                     p1Name=data.player1;
                     p2Name=data.player2;

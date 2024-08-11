@@ -28,6 +28,11 @@ session = None
 class Move(BaseModel):
     row:int
     column:int
+    blue:bool
+    
+class Disc_data(BaseModel):
+    id:str
+    name:str
 
 class User(BaseModel):
     name: str
@@ -64,7 +69,7 @@ turn_details={}                                         #stores who had the firs
 start_times={}                                          #when did a game start?
 watch_list={}                                           # list of sockets watching this game
 game_participants={}                                    #names of participants for a game
-
+socket_list={}                                          #sockets for a game, ind 0 is blue's socket
 
 def handle_click(matrix, player, agent, agent_is_blue):
     def PosToId(x, y):
@@ -284,7 +289,7 @@ def get_ai_move(data: InputData):
         agent_is_blue = data.agent_is_blue
 
         # Call your handle_click function or run inference directly here
-        next_move = Handle_click(matrix, player, agent,agent_is_blue)
+        next_move = handle_click(matrix, player, agent,agent_is_blue)
 
         return {"nextMove": next_move}
 
@@ -403,21 +408,26 @@ def add_name(game_id,user_name):
 
 @app.websocket("/ws/{game_id}/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str):
+    global socket_list
+    global connections
+    global start_times
     await websocket.accept()
     if session_id == game_mapping[game_id][1]:
         event = game_coroutines[game_id]
         event.set()
     if game_id not in connections:
         connections[game_id] = {}
+    if game_id not in socket_list:
+        socket_list[game_id]=[]
     connections[game_id][session_id] = websocket
-    try:
-        while True:
+    socket_list[game_id].append(websocket)
+    while True:
+        try:
             data = await websocket.receive_text()
             message = json.loads(data) 
-            
             if message.get("action") == "gameData":
                 id=message.get('answer_for')
-                name1,name2=game_participants[game_id]
+                name1,name2=game_participants.get(game_id,[None,None])
                 message["Type"]= 1
                 message["p1_name"]=name1
                 message["p2_name"]=name2
@@ -426,24 +436,38 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
                     await socket_to.send_text(json.dumps(message))
                 except Exception as e:
                     print("Error::",e)
-                    continue
+                    
             elif message.get("action") == "blue":
-                name1,name2=game_participants[game_id]
+                name1,name2=game_participants.get(game_id,[None,None])
                 if name1!=message.get('name'):
                     game_participants[game_id]=[name2,name1]
             elif message.get('action')=='moveDetails':
                 message["Type"]=2
-                await broadcast(game_id,message)
+                await pass_message(game_id,message)
+                await broadcast(game_id,message,not message.get("player"))
             elif message.get('action')=='missed':
                 message["Type"]=3
-                await broadcast(game_id,message)
+                await pass_message(game_id,message)
+                await broadcast(game_id,message,not message.get("player"))
             elif message.get('action')=='switch':
+                if message.get("player"):
+                    continue
                 message["Type"]=4
                 name1,name2=game_participants[game_id]
                 game_participants[game_id]=[name2,name1]
                 message["player1"]=name2
                 message["player2"]=name1
-                await broadcast(game_id,message)
+                if len(socket_list[game_id])>1:
+                    sock1,sock2=socket_list[game_id]
+                    socket_list[game_id]=[sock2,sock1]
+                    message['turn']=False
+                    message['player']=True
+                    sock1,sock2=socket_list[game_id]
+                    await sock1.send_text(json.dumps(message))
+                    message['turn']=True
+                    message['player']=False
+                    await sock2.send_text(json.dumps(message))
+                await broadcast(game_id,message,False)
             elif message.get("action") == "acknowledge":
                 user_name = message.get("name")
                 cur_games[session_id] = game_id
@@ -462,29 +486,61 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
                 connections.pop(game_id,None)
                 game_mapping.pop(game_id,None)
                 break
-    except WebSocketDisconnect:
-        # WebSocket connection closed
-        try:
-            start_times.pop(game_id,None)
-            turn_details.pop(session_id,None)
-            turn_counts.pop(game_id,None)
-            other= 1 if game_mapping[game_id][0]==session_id else 0
-            other_session=game_mapping[game_id][other]
-            if game_id in connections and other_session in connections[game_id]:
-                socket=connections[game_id][other_session]
-                message = json.dumps(
-                    {"Type": 5, "win":True})
-                await socket.send_text(message)
-                connections.pop(game_id,None)
-                game_mapping.pop(game_id,None)
+        except WebSocketDisconnect:
+            # WebSocket connection closed
+            try:
+                start_times.pop(game_id,None)
+                turn_details.pop(session_id,None)
+                turn_counts.pop(game_id,None)
+                other= 1 if game_mapping[game_id][0]==session_id else 0
+                other_session=game_mapping[game_id][other]
+                if game_id in connections and other_session in connections[game_id]:
+                    socket=connections[game_id][other_session]
+                    message = json.dumps(
+                        {"Type": 5, "win":True})
+                    await socket.send_text(message)
+                    connections.pop(game_id,None)
+                    game_mapping.pop(game_id,None)
+            except Exception as e:
+                print(f"WebSocket connection closed with exception: {e} 1")
+            break
         except Exception as e:
-            print(f"WebSocket connection closed with exception: {e} 1")
-        # Perform cleanup or other actions as needed
-    except Exception as e:
-        print(f"WebSocket connection closed with exception: {e} 2")
+            print(f"WebSocket connection closed with exception: {e} 2")
+            break
+            
+
+
+async def pass_message(game_id,message):
+    if game_id not in socket_list or len(socket_list[game_id])<=1:
+        return
+    
+    sock1,sock2=socket_list[game_id]
+    message['turn']=True
+    if message.get("player"):
+        await sock2.send_text(json.dumps(message))
+        message['turn']=False
+        await sock1.send_text(json.dumps(message))
+    else:
+        await sock1.send_text(json.dumps(message))
+        message['turn']=False
+        await sock2.send_text(json.dumps(message))
+
+
+@app.post('/disconnect')
+async def disconnect(data:Disc_data):
+    data=data.model_dump()
+    game_id=data.get("id")
+    name=data.get("name")
+    name1,name2=game_participants.get(game_id,[None,None])
+    Winner=name1 if name2==name else name2
+    message={"Type":5,"Winner":Winner}
+    await broadcast(game_id,message)
+    return {"success":True}
+
 
 @app.websocket("/ws/watch/{game_id}/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str):
+    global watch_list
     await websocket.accept()
     
     if game_id not in watch_list:
@@ -502,9 +558,9 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
     except WebSocketDisconnect:
         print(f"WebSocket disconnected for session {session_id} and game {game_id}")
         # Clean up the watch list entry if the WebSocket disconnects
-        del watch_list[game_id][session_id]
-        if not watch_list[game_id]:
-            del watch_list[game_id]
+        watch_list.get(game_id,{}).pop(session_id,None)
+        if not len(watch_list[game_id]):
+            watch_list.pop(game_id,None)
 
 
 async def handle_acknowledgment(game_id: str):
@@ -514,26 +570,30 @@ async def handle_acknowledgment(game_id: str):
 
 
 async def start_game(game_id: str):
+    global socket_list
+    global turn_counts
+    global turn_details
     try:
         if len(connections[game_id].values()) != 2:
             return False
 
         s1, s2 = game_mapping[game_id]
-        sock1, sock2 = connections[game_id][s1], connections[game_id][s2]
+        sock1, sock2 = socket_list[game_id]
 
         # Randomly choose turn
         turn = random.randint(0, 1)
-        if not turn:
+        if turn==0 :
             turn_details[s1]=True
         else:
             turn_details[s2]=True
-        if turn == 1:
-            sock1, sock2 = sock2, sock1  # Swap sockets
+            socket_list[game_id]=[sock2,sock1]
+        
         # Send start message to sockets
         name1,name2=game_participants[game_id]
         start_message1 = {"Type":1,"readyToStart":True,"turn":True,"p1":name1,"p2":name2}
         start_message2 = {"Type":1,"readyToStart":True,"turn":False,"p1":name1,"p2":name2}
 
+        sock1, sock2 = socket_list[game_id]
         # Define a timeout for waiting for responses
         start_times[game_id]=datetime.now()
         await sock1.send_text(json.dumps(start_message1))
@@ -542,67 +602,6 @@ async def start_game(game_id: str):
     except:
         print("Error")
         
-    
-    
-@app.post("/make_move")
-async def make_move(request: Request, data:Move):
-    # Retrieve game_id and session_id from cookies
-    data = data.model_dump()
-    row=data.get("row",-1)
-    column=data.get("column",-1)
-    game_id = request.cookies.get("game_id")
-    session_id = request.cookies.get("session_id")
-    player_number = 0 if game_mapping[game_id][0] == session_id else 1
-    for session_id in game_mapping[game_id]:
-        if session_id not in connections[game_id]:
-            return {"message": "waiting for other player"}
-    if not game_id or not session_id:
-        return error(request, 400, "Game ID or session ID not found in cookies")
-
-    # Retrieve player number based on session_id
-    
-    if player_number is None:
-        return error(request, 400, "Player number not found for session ID")
-
-    flag=False
-    if (row < 0 or column < 0):
-        flag=False
-    else:
-        flag=True
-    t= 0 if player_number==1 else 1
-    sock1 = connections[game_id][game_mapping[game_id][t]]
-    sock2 = connections[game_id][game_mapping[game_id][(t+1)%2]]
-    
-    message1 = json.dumps({"Type": 2, "turn": True})
-    message2 = json.dumps({"Type": 2, "turn": False})
-    if(flag):
-        message1 = json.dumps(
-            {"Type": 0, "row": row, "column": column, "turn": True})
-        message2 = json.dumps(
-            {"Type": 0, "row": row, "column": column, "turn": False})
-    
-    await sock1.send_text(message1)
-    await sock2.send_text(message2)
-    turn_counts[game_id]+=1
-    return {"message": "Move successfully made"}
-
-@app.get('/swith_player')
-async def switch_player(request:Request):
-    game_id = request.cookies.get("game_id")
-    session_id = request.cookies.get("session_id")
-    s1,s2=game_mapping[game_id]
-    if s1!=session_id:
-        s1,s2=s2,s1
-    if turn_counts[game_id]==1 and session_id not in turn_details:
-        sock1 = connections[game_id][s1]
-        sock2 = connections[game_id][s2]
-        message1 = json.dumps({"Type": 3, "starting": True,"turn":False})
-        message2 = json.dumps({"Type": 3, "starting": False,"turn":True})
-        await sock1.send_text(message1)
-        await sock2.send_text(message2)
-    return {"message": "swith request processed"}
-
-
 
 @app.on_event("startup")
 def start_up():
@@ -645,18 +644,24 @@ async def get_live_games():
 async def get_game_info(request:Request,data:gameRequest):
     game_id=data.id
     for socket in connections[game_id].values():
-        message = json.dumps({"Type": 6, "id":request.cookies.get("session_id")})
-        await socket.send_text(message)
+        try:
+            message = json.dumps({"Type": 6, "id":request.cookies.get("session_id")})
+            await socket.send_text(message)
+        except Exception:
+            pass
     return {"success":True}
     
-async def broadcast(game_id,message):
+async def broadcast(game_id,message,blue_turn=False):
     if game_id not in watch_list:
         return
+    message['blue']=blue_turn
     for socket in watch_list[game_id].values():
         try:
             await socket.send_text(json.dumps(message))
         except Exception as e:
-            del watch_list[game_id]
+            watch_list.pop(game_id,None)
+    if message.get("Type")==5:
+        watch_list.pop(game_id,None)
 
 
 async def clear_dicts():
@@ -676,13 +681,14 @@ async def clear_dicts():
     snapshot_start_times = dict(start_times)
     snapshot_game_participants=dict(game_participants)
     snapshot_watch_list=dict(watch_list)
+    snapshot_socket_list=dict(socket_list)
 
     await asyncio.sleep(15*60)  # 15 minutes in seconds
 
     # Compare with the snapshot and clear any new items
-    for d, snapshot in zip([game_mapping, connections, game_coroutines, cur_games, turn_counts, turn_details,watch_list,game_participants,start_times],
+    for d, snapshot in zip([game_mapping, connections, game_coroutines, cur_games, turn_counts, turn_details,watch_list,game_participants,start_times,socket_list],
                            [snapshot_mapping, snapshot_connections, snapshot_coroutines, snapshot_cur_games,
-                            snapshot_turn_counts, snapshot_turn_details,snapshot_watch_list,snapshot_game_participants,snapshot_start_times]):
+                            snapshot_turn_counts, snapshot_turn_details,snapshot_watch_list,snapshot_game_participants,snapshot_start_times,snapshot_start_times]):
         for key in list(snapshot.keys()):
                 d.pop(key,None)
 
