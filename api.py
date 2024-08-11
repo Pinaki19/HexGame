@@ -483,9 +483,13 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, session_id: str
                 message['Winner']=name
                 await broadcast(game_id,message)
             elif message.get("action") == 'END':
+                message["Type"]=5
+                name1,name2=game_participants.get(game_id)
+                name= name1 if message.get("player1") else name2
+                message['Winner']=name
+                await broadcast(game_id,message)
                 connections.pop(game_id,None)
                 game_mapping.pop(game_id,None)
-                break
         except WebSocketDisconnect:
             # WebSocket connection closed
             try:

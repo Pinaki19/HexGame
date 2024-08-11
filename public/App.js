@@ -182,7 +182,6 @@ async function handle_click(matrix, player, agent, ai_board,agent_is_blue){
             console.log("Agent can surely win with the suggested move", sure_win_move);
             updateTurn(200, `Agent can surely win with the suggested move ${sure_win_move}`);
             matrix[sure_win_move] = agent;
-            set_color(sure_win_move, true,false);
             resolve(sure_win_move);
             return;
         }
