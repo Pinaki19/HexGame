@@ -151,9 +151,6 @@
             right:2%;
         }
 
-
-
-       
         #Surrender{
             position:absolute;
             top:10%;
@@ -167,30 +164,32 @@
         #Welcome{
             font-size: small;
         }
+        .grid{
+            padding-top: 3em;
+        }
         #Score_You,#Score_Opp{
             padding: 5px;
             padding-right: 15px;
             border-radius: 5px;
         }
         #Score_You {
-            position: absolute;
-            bottom: 20px;
-            top: unset;
-            left: 2%;
+            position:absolute;
+            top:11%;
+            left:5%;
         }
 
-         #Score_Opp{
-            position: absolute;
-            bottom: 20px;
-            right:2%;
+        #Score_Opp{
+            position:absolute;
+            top:11%;
+            right:5%;
         }
        
         #Surrender{
-            position:absolute;
-            top:10%;
-            bottom: unset;
-            right:5%;
+            top:unset;
             padding:15px;
+            position: absolute;
+            bottom: 5%;
+            right:2%;
         }
 
     }
@@ -235,17 +234,17 @@
     </nav>
     <!-- Navbar -->
     <div class="col-3 d-flex flex-column justify-content-center" id="Score_You">
-        <h4>You</h4>
+        <h5>You</h5>
         <span>Color : <span id="Youcolor" class="color-square1"></span> </span>
-        <span>Moves played :<span id="YouNumMoves">0</span></span>
-        <span>Moves missed : <span id="YouMissedMoves">0</span></span>
+        <span>Played :<span id="YouNumMoves">0</span></span>
+        <span>Missed : <span id="YouMissedMoves">0</span></span>
         <!-- <span>Win probability : <span id="YouWinPercent">50%</span></span> -->
     </div>
     <div class="col-3 d-flex flex-column justify-content-center" id="Score_Opp">
-        <h4>Opponent</h4>
+        <h5>Opponent</h5>
         <span>Color : <span id="Oppocolor" class="color-square2"></span></span>
-        <span>Moves played :<span id="OppoNumMoves">0</span></span>
-        <span>Moves missed : <span id="OppoMissedMoves">0</span></span>
+        <span>Played :<span id="OppoNumMoves">0</span></span>
+        <span>Missed : <span id="OppoMissedMoves">0</span></span>
         <!-- <span>Win probability : <span id="OppoWinPercent">50%</span></span> -->
     </div>
     <button type="button" id="Surrender" class="btn btn-danger" onclick="Surrender()">Surrender</button>
@@ -1550,7 +1549,7 @@
         var agent_is_blue=true;
         var player_blue=true;
         var switch_asked=false;
-        var UserName="Player 1";
+        var UserName=null;
         var winner=null;
         var flag=false;      // indicates my move
         const time=20;

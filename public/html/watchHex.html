@@ -139,9 +139,6 @@
             right:2%;
         }
 
-
-
-       
         #Surrender{
             position:absolute;
             top:10%;
@@ -155,34 +152,35 @@
         #Welcome{
             font-size: small;
         }
+        .grid{
+            padding-top: 3em;
+        }
         #Score_You,#Score_Opp{
             padding: 5px;
             padding-right: 15px;
             border-radius: 5px;
         }
         #Score_You {
-            position: absolute;
-            bottom: 20px;
-            top: unset;
-            left: 2%;
+            position:absolute;
+            top:11%;
+            left:5%;
         }
 
-         #Score_Opp{
-            position: absolute;
-            bottom: 20px;
-            right:2%;
+        #Score_Opp{
+            position:absolute;
+            top:11%;
+            right:5%;
         }
        
         #Surrender{
-            position:absolute;
-            top:10%;
-            bottom: unset;
-            right:5%;
+            top:unset;
             padding:15px;
+            position: absolute;
+            bottom: 5%;
+            right:2%;
         }
 
     }
-
     </style>
 
     </head>
@@ -225,15 +223,15 @@
     <div class="col-3 d-flex flex-column justify-content-center" id="Score_You">
         <h5 id="p1Name">Player 1</h5>
         <span>Color : <span id="p1color" class="color-square1"></span> </span>
-        <span>Moves played :<span id="p1NumMoves">0</span></span>
-        <span>Moves missed : <span id="p1MissedMoves">0</span></span>
+        <span>Played :<span id="p1NumMoves">0</span></span>
+        <span>Missed : <span id="p1MissedMoves">0</span></span>
         <!-- <span>Win probability : <span id="YouWinPercent">50%</span></span> -->
     </div>
     <div class="col-3 d-flex flex-column justify-content-center" id="Score_Opp">
         <h5 id="p2Name">Player 2</h5>
         <span>Color : <span id="p2color" class="color-square2"></span></span>
-        <span>Moves played :<span id="p2NumMoves">0</span></span>
-        <span>Moves missed : <span id="p2MissedMoves">0</span></span>
+        <span>Played :<span id="p2NumMoves">0</span></span>
+        <span>Missed : <span id="p2MissedMoves">0</span></span>
         <!-- <span>Win probability : <span id="OppoWinPercent">50%</span></span> -->
     </div>
     <button type="button" id="Surrender" class="btn btn-danger" onclick="Exit()" style="padding-left:1em;padding-right:1em;">Exit</button>
