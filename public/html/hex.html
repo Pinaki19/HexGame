@@ -235,12 +235,14 @@
     </nav>
     <!-- Navbar -->
     <div class="col-3 d-flex flex-column justify-content-center" id="Score_You">
+        <h4>You</h4>
         <span>Color : <span id="Youcolor" class="color-square1"></span> </span>
         <span>Moves played :<span id="YouNumMoves">0</span></span>
         <span>Moves missed : <span id="YouMissedMoves">0</span></span>
         <!-- <span>Win probability : <span id="YouWinPercent">50%</span></span> -->
     </div>
     <div class="col-3 d-flex flex-column justify-content-center" id="Score_Opp">
+        <h4>Opponent</h4>
         <span>Color : <span id="Oppocolor" class="color-square2"></span></span>
         <span>Moves played :<span id="OppoNumMoves">0</span></span>
         <span>Moves missed : <span id="OppoMissedMoves">0</span></span>
@@ -1626,6 +1628,7 @@
                             var elapsedTime = Date.now() - startTime;
                             await new Promise(resolve => setTimeout(resolve, Math.max(delay - elapsedTime, 0)));
                             set_color(best,!agent_is_blue);
+                            await send_move(best,!agent_is_blue);
                             matrix[best] = agent;
                             updateTurn(moveCount, `AI played: ${best}`);
                             moveCount++;
@@ -1639,22 +1642,23 @@
                         } catch (error) {
                             console.error('Error occurred:', error);
                         }
-                    }
-                    var best=await handle_click(matrix, player, agent, ai_board, agent_is_blue);
-                    var elapsedTime = Date.now() - startTime;
-                    await new Promise(resolve => setTimeout(resolve, Math.max(delay - elapsedTime, 0)));
-                    set_color(best, !agent_is_blue);
-                    await send_move(best,!agent_is_blue);
-                    matrix[best] = agent;
-                    //updateTurn(moveCount, `AI played: ${best}`);
-                    moveCount++;
-                    if (HasWinner(matrix)) {
-                        console.log(winner);
-                        let s = (player_blue && winner === "0" || !player_blue && winner === "1") ? "You" : "Opponent";
-                        console.log("Game already won by", s);
-                        endGame(s);
-                        return;
-                    }
+                    }else{
+                        var best=await handle_click(matrix, player, agent, ai_board, agent_is_blue);
+                        var elapsedTime = Date.now() - startTime;
+                        await new Promise(resolve => setTimeout(resolve, Math.max(delay - elapsedTime, 0)));
+                        set_color(best, !agent_is_blue);
+                        await send_move(best,!agent_is_blue);
+                        matrix[best] = agent;
+                        //updateTurn(moveCount, `AI played: ${best}`);
+                        moveCount++;
+                        if (HasWinner(matrix)) {
+                            console.log(winner);
+                            let s = (player_blue && winner === "0" || !player_blue && winner === "1") ? "You" : "Opponent";
+                            console.log("Game already won by", s);
+                            endGame(s);
+                            return;
+                        }
+                    }  
 
             }
 

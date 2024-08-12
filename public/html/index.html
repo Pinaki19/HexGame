@@ -362,7 +362,8 @@
             const swalInstance = await Swal.fire({
                 title: 'Live Games',
                 html: '<div id="gameTable" class="table-responsive">Loading...</div>',
-                showCancelButton: true,
+                showCancelButton: false,
+                timer:10000,
                 didOpen: async () => {
                     const gameTableDiv = document.getElementById('gameTable');
         
